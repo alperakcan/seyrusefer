@@ -5,6 +5,7 @@
 
 #define SEYRUSEFER_DEBUG_TAG "main"
 #include "debug.h"
+#include "platform.h"
 #include "seyrusefer.h"
 
 void app_main (void)
@@ -22,6 +23,14 @@ void app_main (void)
                 goto bail;
         }
 
+        seyrusefer_infof("initializing platform");
+        rc = seyrusefer_platform_init();
+        if (rc < 0) {
+                seyrusefer_errorf("can not init seyrusefer platform");
+                goto bail;
+        }
+
+        seyrusefer_infof("creating seyrusefer");
         rc = seyrusefer_init_options_default(&seyrusefer_init_options);
         if (rc < 0) {
                 seyrusefer_errorf("can not init seyrusefer init options");
@@ -38,6 +47,7 @@ bail:   seyrusefer_errorf("error occured, restarting");
         if (seyrusefer != NULL) {
                 seyrusefer_destroy(seyrusefer);
         }
+        seyrusefer_platform_deinit();
         esp_event_loop_delete_default();
         seyrusefer_infof("Restarting in 10 seconds...");
         vTaskDelay(pdMS_TO_TICKS(10000));

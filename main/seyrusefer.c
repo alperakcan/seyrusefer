@@ -11,6 +11,7 @@
 
 #define SEYRUSEFER_DEBUG_TAG "seyrusefer"
 #include "debug.h"
+#include "platform.h"
 #include "timer.h"
 #include "seyrusefer.h"
 
@@ -31,6 +32,9 @@ struct seyrusefer {
         int state;
         int pstate;
         int restart;
+
+        int buttons;
+        int pbuttons;
 
         struct seyrusefer_timer *timer;
 
@@ -143,8 +147,6 @@ static void process_alarm_callback_fired (struct seyrusefer_alarm *alarm, void *
 
         (void) alarm;
 
-        seyrusefer_infof("process");
-
         rc = seyrusefer_process(seyrusefer);
         if (rc < 0) {
                 seyrusefer_errorf("seyrusefer_process failed, rc: %d", rc);
@@ -200,7 +202,7 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
                 seyrusefer_errorf("can not init timer init options");
                 goto bail;
         }
-        seyrusefer_timer_init_options.resolution = SEYRUSEFER_TIMER_RESOLUTION_100_MILLISECONDS;
+        seyrusefer_timer_init_options.resolution = SEYRUSEFER_TIMER_RESOLUTION_MILLISECONDS;
         seyrusefer_timer_init_options.enabled    = 0;
         seyrusefer->timer = seyrusefer_timer_create(&seyrusefer_timer_init_options);
         if (seyrusefer->timer == NULL) {
@@ -218,7 +220,7 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer_process_alarm_init_options.callback_fired     = process_alarm_callback_fired;
         seyrusefer_process_alarm_init_options.callback_context   = seyrusefer;
         seyrusefer_process_alarm_init_options.timer              = seyrusefer->timer;
-        seyrusefer_process_alarm_init_options.timeout            = 1000000;
+        seyrusefer_process_alarm_init_options.timeout            = 10000;
         seyrusefer_process_alarm_init_options.singleshot         = 0;
         seyrusefer_process_alarm_init_options.enabled            = 0;
         seyrusefer->process_alarm = seyrusefer_alarm_create(&seyrusefer_process_alarm_init_options);
@@ -270,8 +272,30 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
         if (seyrusefer->restart) {
                 seyrusefer_errorf("restart requested, in 1 second");
                 vTaskDelay(pdMS_TO_TICKS(1000));
-                esp_restart();
+                seyrusefer_platform_restart();
                 return 0;
         }
+
+        seyrusefer->buttons = seyrusefer_platform_get_buttons();
+        if (seyrusefer->buttons != seyrusefer->pbuttons) {
+                seyrusefer->pbuttons = seyrusefer->buttons;
+                seyrusefer_debugf("buttons: 0x%08x", seyrusefer->buttons);
+                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_1) {
+                        seyrusefer_platform_set_led(0);
+                }
+                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_2) {
+                        seyrusefer_platform_set_led(20);
+                }
+                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_3) {
+                        seyrusefer_platform_set_led(40);
+                }
+                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_4) {
+                        seyrusefer_platform_set_led(60);
+                }
+                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_5) {
+                        seyrusefer_platform_set_led(80);
+                }
+        }
+
         return 0;
 }

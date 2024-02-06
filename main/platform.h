@@ -1,0 +1,21 @@
+
+enum {
+        SEYRUSEFER_PLATFORM_BUTTON_1    = 0x00000001,
+        SEYRUSEFER_PLATFORM_BUTTON_2    = 0x00000002,
+        SEYRUSEFER_PLATFORM_BUTTON_3    = 0x00000004,
+        SEYRUSEFER_PLATFORM_BUTTON_4    = 0x00000008,
+        SEYRUSEFER_PLATFORM_BUTTON_5    = 0x00000010
+#define SEYRUSEFER_PLATFORM_BUTTON_1    SEYRUSEFER_PLATFORM_BUTTON_1
+#define SEYRUSEFER_PLATFORM_BUTTON_2    SEYRUSEFER_PLATFORM_BUTTON_2
+#define SEYRUSEFER_PLATFORM_BUTTON_3    SEYRUSEFER_PLATFORM_BUTTON_3
+#define SEYRUSEFER_PLATFORM_BUTTON_4    SEYRUSEFER_PLATFORM_BUTTON_4
+#define SEYRUSEFER_PLATFORM_BUTTON_5    SEYRUSEFER_PLATFORM_BUTTON_5
+};
+
+int seyrusefer_platform_init (void);
+int seyrusefer_platform_deinit (void);
+
+int seyrusefer_platform_restart (void);
+
+int seyrusefer_platform_get_buttons (void);
+int seyrusefer_platform_set_led (int on);
