@@ -188,9 +188,9 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         }
         memset(seyrusefer, 0, sizeof(struct seyrusefer));
 
-        seyrusefer->state            = SEYRUSEFER_STATE_NONE;
-        seyrusefer->pstate           = SEYRUSEFER_STATE_NONE;
-        seyrusefer->restart          = 0;
+        seyrusefer->state       = SEYRUSEFER_STATE_NONE;
+        seyrusefer->pstate      = SEYRUSEFER_STATE_NONE;
+        seyrusefer->restart     = 0;
 
         seyrusefer_infof("creating timer");
         seyrusefer_infof("  enabled   : %d", 0);
