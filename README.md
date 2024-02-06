@@ -57,6 +57,14 @@ Controlling unit designed especially for adventure bikes
     idf.py -p /dev/ttyUSB0 flash
     idf.py -p /dev/ttyUSB0 monitor
 
+    cp -r $IDF_PATH/examples/bluetooth/bluedroid/ble/ble_hid_device_demo esp-idf-example-ble_hid_device_demo
+    cd esp-idf-example-ble_hid_device_demo
+    idf.py set-target esp32
+    idf.py menuconfig
+    idf.py build
+    idf.py -p /dev/ttyUSB0 flash
+    idf.py -p /dev/ttyUSB0 monitor
+
 ### 1.1.4 install application
 
     idf.py set-target esp32
