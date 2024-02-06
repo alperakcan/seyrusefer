@@ -278,8 +278,10 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
 
         seyrusefer->buttons = seyrusefer_platform_get_buttons();
         if (seyrusefer->buttons != seyrusefer->pbuttons) {
+                int pressed  = seyrusefer->buttons & ~seyrusefer->pbuttons;
+                int released = seyrusefer->pbuttons & ~seyrusefer->buttons;
                 seyrusefer->pbuttons = seyrusefer->buttons;
-                seyrusefer_debugf("buttons: 0x%08x", seyrusefer->buttons);
+                seyrusefer_debugf("buttons: 0x%08x, pressed: 0x%08x, released: 0x%08x", seyrusefer->buttons, pressed, released);
                 if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_1) {
                         seyrusefer_platform_set_led(0);
                 }
