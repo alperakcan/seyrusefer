@@ -364,6 +364,7 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                                 seyrusefer_errorf("can not stop wifi");
                                 goto bail;
                         }
+                        seyrusefer_infof("stoping httpd");
                         rc = seyrusefer_httpd_stop(seyrusefer->httpd);
                         if (rc < 0) {
                                 seyrusefer_errorf("can not stop httpd");
