@@ -3,6 +3,9 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "driver/ledc.h"
+#include "esp_event.h"
+#include "esp_netif.h"
+#include "nvs_flash.h"
 
 #define SEYRUSEFER_DEBUG_TAG "platform"
 #include "debug.h"
@@ -92,6 +95,32 @@ int seyrusefer_platform_init (void)
                 seyrusefer_errorf("can not int gpio");
                 goto bail;
         }
+        rc = nvs_flash_init();
+        if (rc == ESP_ERR_NVS_NO_FREE_PAGES ||
+            rc == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+                rc = nvs_flash_erase();
+                if (rc != ESP_OK) {
+                        seyrusefer_errorf("can not erase flash");
+                        goto bail;
+                }
+                rc = nvs_flash_init();
+        }
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("can not create nvs flash");
+                goto bail;
+        }
+
+        rc = esp_netif_init();
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("can not create netif");
+                goto bail;
+        }
+
+        rc = esp_event_loop_create_default();
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("can not create event loop");
+                goto bail;
+        }
 
         return 0;
 bail:   return -1;
@@ -99,6 +128,9 @@ bail:   return -1;
 
 int seyrusefer_platform_deinit (void)
 {
+        esp_netif_deinit();
+        esp_event_loop_delete_default();
+        nvs_flash_deinit();
         return 0;
 }
 

@@ -17,12 +17,6 @@ void app_main (void)
 
         seyrusefer = NULL;
 
-        rc = esp_event_loop_create_default();
-        if (rc != ESP_OK) {
-                seyrusefer_errorf("can not create event loop");
-                goto bail;
-        }
-
         seyrusefer_infof("initializing platform");
         rc = seyrusefer_platform_init();
         if (rc < 0) {
@@ -48,7 +42,6 @@ bail:   seyrusefer_errorf("error occured, restarting");
                 seyrusefer_destroy(seyrusefer);
         }
         seyrusefer_platform_deinit();
-        esp_event_loop_delete_default();
         seyrusefer_infof("Restarting in 10 seconds...");
         vTaskDelay(pdMS_TO_TICKS(10000));
         esp_restart();

@@ -13,6 +13,8 @@
 #include "debug.h"
 #include "platform.h"
 #include "timer.h"
+#include "wifi.h"
+#include "httpd.h"
 #include "seyrusefer.h"
 
 #define SEYRUSEFER_VERSION                              "seyrusefer-0.0.0.bin"
@@ -37,6 +39,8 @@ struct seyrusefer {
         int pbuttons;
 
         struct seyrusefer_timer *timer;
+        struct seyrusefer_wifi *wifi;
+        struct seyrusefer_httpd *httpd;
 
         struct seyrusefer_alarm *process_alarm;
 };
@@ -48,6 +52,9 @@ static int seyrusefer_set_state_error_actual (struct seyrusefer *seyrusefer);
 static int seyrusefer_set_state (struct seyrusefer *seyrusefer, int state);
 
 static void process_alarm_callback_fired (struct seyrusefer_alarm *alarm, void *context);
+
+static void wifi_callback_ap_start (struct seyrusefer_wifi *wifi, void *context);
+static void wifi_callback_ap_stop (struct seyrusefer_wifi *wifi, void *context);
 
 static const char * seyrusefer_state_string (int state)
 {
@@ -158,6 +165,22 @@ bail:   seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_ERROR);
         return;
 }
 
+static void wifi_callback_ap_start (struct seyrusefer_wifi *wifi, void *context)
+{
+        struct seyrusefer_seyrusefer *seyrusefer = context;
+        (void) wifi;
+        (void) seyrusefer;
+        seyrusefer_infof("wifi ap start");
+}
+
+static void wifi_callback_ap_stop (struct seyrusefer_wifi *wifi, void *context)
+{
+        struct seyrusefer_seyrusefer *seyrusefer = context;
+        (void) wifi;
+        (void) seyrusefer;
+        seyrusefer_infof("wifi ap stop");
+}
+
 int seyrusefer_init_options_default (struct seyrusefer_init_options *options)
 {
         if (options == NULL) {
@@ -174,6 +197,8 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         int rc;
         struct seyrusefer *seyrusefer;
         struct seyrusefer_timer_init_options seyrusefer_timer_init_options;
+        struct seyrusefer_wifi_init_options seyrusefer_wifi_init_options;
+        struct seyrusefer_httpd_init_options seyrusefer_httpd_init_options;
         struct seyrusefer_alarm_init_options seyrusefer_process_alarm_init_options;
 
         seyrusefer = NULL;
@@ -207,6 +232,39 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->timer = seyrusefer_timer_create(&seyrusefer_timer_init_options);
         if (seyrusefer->timer == NULL) {
                 seyrusefer_errorf("can not create timer");
+                goto bail;
+        }
+
+        seyrusefer_infof("creating wifi");
+        seyrusefer_infof("  enabled             : %d", 0);
+        rc = seyrusefer_wifi_init_options_default(&seyrusefer_wifi_init_options);
+        if (rc < 0) {
+                seyrusefer_errorf("can not init wifi init options");
+                goto bail;
+        }
+        seyrusefer_wifi_init_options.enabled                     = 0;
+        seyrusefer_wifi_init_options.callback_ap_start           = wifi_callback_ap_start;
+        seyrusefer_wifi_init_options.callback_ap_stop            = wifi_callback_ap_stop;
+        seyrusefer_wifi_init_options.callback_context            = seyrusefer;
+        seyrusefer->wifi = seyrusefer_wifi_create(&seyrusefer_wifi_init_options);
+        if (seyrusefer->wifi == NULL) {
+                seyrusefer_errorf("can not create wifi");
+                goto bail;
+        }
+
+        seyrusefer_infof("creating httpd");
+        seyrusefer_infof("  port   : %d", 80);
+        seyrusefer_infof("  enabled: %d", 0);
+        rc = seyrusefer_httpd_init_options_default(&seyrusefer_httpd_init_options);
+        if (rc < 0) {
+                seyrusefer_errorf("can not init httpd init options");
+                goto bail;
+        }
+        seyrusefer_httpd_init_options.port    = 80;
+        seyrusefer_httpd_init_options.enabled = 0;
+        seyrusefer->httpd = seyrusefer_httpd_create(&seyrusefer_httpd_init_options);
+        if (seyrusefer->httpd == NULL) {
+                seyrusefer_errorf("can not create httpd");
                 goto bail;
         }
 
@@ -261,6 +319,12 @@ void seyrusefer_destroy (struct seyrusefer *seyrusefer)
         if (seyrusefer->process_alarm != NULL) {
                 seyrusefer_alarm_destroy(seyrusefer->process_alarm);
         }
+        if (seyrusefer->httpd != NULL) {
+                seyrusefer_httpd_destroy(seyrusefer->httpd);
+        }
+        if (seyrusefer->wifi != NULL) {
+                seyrusefer_wifi_destroy(seyrusefer->wifi);
+        }
         if (seyrusefer->timer != NULL) {
                 seyrusefer_timer_destroy(seyrusefer->timer);
         }
@@ -284,12 +348,48 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 seyrusefer_debugf("buttons: 0x%08x, pressed: 0x%08x, released: 0x%08x", seyrusefer->buttons, pressed, released);
                 if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_1) {
                         seyrusefer_platform_set_led(0);
+
+                        int rc;
+                        seyrusefer_infof("stoping httpd");
+                        rc = seyrusefer_httpd_stop(seyrusefer->httpd);
+                        if (rc < 0) {
+                                seyrusefer_errorf("can not stop httpd");
+                                goto bail;
+                        }
+                        seyrusefer_infof("stoping wifi");
+                        rc = seyrusefer_wifi_stop(seyrusefer->wifi);
+                        if (rc < 0) {
+                                seyrusefer_errorf("can not stop wifi");
+                                goto bail;
+                        }
                 }
                 if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_2) {
                         seyrusefer_platform_set_led(20);
                 }
                 if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_3) {
                         seyrusefer_platform_set_led(40);
+
+                        int rc;
+                        struct seyrusefer_wifi_ap_config seyrusefer_wifi_ap_config;
+                        snprintf(seyrusefer_wifi_ap_config.ssid, sizeof(seyrusefer_wifi_ap_config.ssid), "seyrusefer");
+                        snprintf(seyrusefer_wifi_ap_config.password, sizeof(seyrusefer_wifi_ap_config.password), "seyrusefer");
+                        rc = seyrusefer_wifi_ap_set_config(seyrusefer->wifi, &seyrusefer_wifi_ap_config);
+                        if (rc < 0) {
+                                seyrusefer_errorf("can setup wifi ap");
+                                goto bail;
+                        }
+                        seyrusefer_infof("starting wifi");
+                        rc = seyrusefer_wifi_start(seyrusefer->wifi);
+                        if (rc < 0) {
+                                seyrusefer_errorf("can not start wifi");
+                                goto bail;
+                        }
+                        seyrusefer_infof("starting httpd");
+                        rc = seyrusefer_httpd_start(seyrusefer->httpd);
+                        if (rc < 0) {
+                                seyrusefer_errorf("can not start httpd");
+                                goto bail;
+                        }
                 }
                 if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_4) {
                         seyrusefer_platform_set_led(60);
@@ -300,4 +400,5 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
         }
 
         return 0;
+bail:   return -1;
 }
