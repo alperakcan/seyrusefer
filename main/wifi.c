@@ -189,7 +189,7 @@ int seyrusefer_wifi_process (struct seyrusefer_wifi *wifi)
                 goto bail;
         }
         if (wifi->enabled == 0) {
-                seyrusefer_debugf("not enabled");
+                seyrusefer_tracef("not enabled");
                 goto out;
         }
 out:    return 0;
@@ -272,8 +272,11 @@ int seyrusefer_wifi_stop (struct seyrusefer_wifi *wifi)
                 goto out;
         }
 
+        seyrusefer_errorf("here");
         esp_wifi_stop();
+        seyrusefer_errorf("here");
         esp_wifi_restore();
+        seyrusefer_errorf("here");
 
         wifi->enabled = 0;
 out:    return 0;

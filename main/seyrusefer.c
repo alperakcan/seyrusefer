@@ -333,11 +333,19 @@ void seyrusefer_destroy (struct seyrusefer *seyrusefer)
 
 int seyrusefer_process (struct seyrusefer *seyrusefer)
 {
+        int rc;
+
         if (seyrusefer->restart) {
                 seyrusefer_errorf("restart requested, in 1 second");
                 vTaskDelay(pdMS_TO_TICKS(1000));
                 seyrusefer_platform_restart();
                 return 0;
+        }
+
+        rc = seyrusefer_wifi_process(seyrusefer->wifi);
+        if (rc < 0) {
+                seyrusefer_errorf("seyrusefer_wifi_process failed, rc: %d", rc);
+                goto bail;
         }
 
         seyrusefer->buttons = seyrusefer_platform_get_buttons();
@@ -350,16 +358,15 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                         seyrusefer_platform_set_led(0);
 
                         int rc;
-                        seyrusefer_infof("stoping httpd");
-                        rc = seyrusefer_httpd_stop(seyrusefer->httpd);
-                        if (rc < 0) {
-                                seyrusefer_errorf("can not stop httpd");
-                                goto bail;
-                        }
                         seyrusefer_infof("stoping wifi");
                         rc = seyrusefer_wifi_stop(seyrusefer->wifi);
                         if (rc < 0) {
                                 seyrusefer_errorf("can not stop wifi");
+                                goto bail;
+                        }
+                        rc = seyrusefer_httpd_stop(seyrusefer->httpd);
+                        if (rc < 0) {
+                                seyrusefer_errorf("can not stop httpd");
                                 goto bail;
                         }
                 }
