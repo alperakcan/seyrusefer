@@ -272,11 +272,8 @@ int seyrusefer_wifi_stop (struct seyrusefer_wifi *wifi)
                 goto out;
         }
 
-        seyrusefer_errorf("here");
         esp_wifi_stop();
-        seyrusefer_errorf("here");
         esp_wifi_restore();
-        seyrusefer_errorf("here");
 
         wifi->enabled = 0;
 out:    return 0;
