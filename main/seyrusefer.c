@@ -12,7 +12,9 @@
 #define SEYRUSEFER_DEBUG_TAG "seyrusefer"
 #include "debug.h"
 #include "platform.h"
+#include "config.h"
 #include "timer.h"
+#include "hid.h"
 #include "wifi.h"
 #include "httpd.h"
 #include "seyrusefer.h"
@@ -38,7 +40,9 @@ struct seyrusefer {
         int buttons;
         int pbuttons;
 
+        struct seyrusefer_config *config;
         struct seyrusefer_timer *timer;
+        struct seyrusefer_hid *hid;
         struct seyrusefer_wifi *wifi;
         struct seyrusefer_httpd *httpd;
 
@@ -78,6 +82,11 @@ static int seyrusefer_set_state_init_actual (struct seyrusefer *seyrusefer)
         rc = seyrusefer_alarm_set_enabled(seyrusefer->process_alarm, 1);
         if (rc < 0) {
                 seyrusefer_errorf("can not enable process_alarm");
+                goto bail;
+        }
+        rc = seyrusefer_hid_start(seyrusefer->hid);
+        if (rc < 0) {
+                seyrusefer_errorf("can not start hid device");
                 goto bail;
         }
         rc = seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
@@ -196,7 +205,9 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
 {
         int rc;
         struct seyrusefer *seyrusefer;
+        struct seyrusefer_config_init_options seyrusefer_config_init_options;
         struct seyrusefer_timer_init_options seyrusefer_timer_init_options;
+        struct seyrusefer_hid_init_options seyrusefer_hid_init_options;
         struct seyrusefer_wifi_init_options seyrusefer_wifi_init_options;
         struct seyrusefer_httpd_init_options seyrusefer_httpd_init_options;
         struct seyrusefer_alarm_init_options seyrusefer_process_alarm_init_options;
@@ -219,6 +230,20 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->pstate      = SEYRUSEFER_STATE_NONE;
         seyrusefer->restart     = 0;
 
+        seyrusefer_infof("creating config");
+        seyrusefer_infof("  path     : %s", "config");
+        rc = seyrusefer_config_init_options_default(&seyrusefer_config_init_options);
+        if (rc < 0) {
+                seyrusefer_errorf("can not init config init options");
+                goto bail;
+        }
+        seyrusefer_config_init_options.path = "config";
+        seyrusefer->config = seyrusefer_config_create(&seyrusefer_config_init_options);
+        if (seyrusefer->config == NULL) {
+                seyrusefer_errorf("can not create config");
+                goto bail;
+        }
+
         seyrusefer_infof("creating timer");
         seyrusefer_infof("  enabled   : %d", 0);
         seyrusefer_infof("  resolution: %s", "default");
@@ -235,8 +260,23 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
                 goto bail;
         }
 
+        seyrusefer_infof("creating hid");
+        seyrusefer_infof("  enabled : %d", 0);
+        rc = seyrusefer_hid_init_options_default(&seyrusefer_hid_init_options);
+        if (rc < 0) {
+                seyrusefer_errorf("can not init hid init options");
+                goto bail;
+        }
+        seyrusefer_hid_init_options.enabled     = 0;
+        seyrusefer_hid_init_options.config      = seyrusefer->config;
+        seyrusefer->hid = seyrusefer_hid_create(&seyrusefer_hid_init_options);
+        if (seyrusefer->hid == NULL) {
+                seyrusefer_errorf("can not create hid");
+                goto bail;
+        }
+
         seyrusefer_infof("creating wifi");
-        seyrusefer_infof("  enabled             : %d", 0);
+        seyrusefer_infof("  enabled : %d", 0);
         rc = seyrusefer_wifi_init_options_default(&seyrusefer_wifi_init_options);
         if (rc < 0) {
                 seyrusefer_errorf("can not init wifi init options");
@@ -325,8 +365,14 @@ void seyrusefer_destroy (struct seyrusefer *seyrusefer)
         if (seyrusefer->wifi != NULL) {
                 seyrusefer_wifi_destroy(seyrusefer->wifi);
         }
+        if (seyrusefer->hid != NULL) {
+                seyrusefer_hid_destroy(seyrusefer->hid);
+        }
         if (seyrusefer->timer != NULL) {
                 seyrusefer_timer_destroy(seyrusefer->timer);
+        }
+        if (seyrusefer->config != NULL) {
+                seyrusefer_config_destroy(seyrusefer->config);
         }
         free(seyrusefer);
 }
@@ -342,6 +388,11 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 return 0;
         }
 
+        rc = seyrusefer_hid_process(seyrusefer->hid);
+        if (rc < 0) {
+                seyrusefer_errorf("seyrusefer_hid_process failed, rc: %d", rc);
+                goto bail;
+        }
         rc = seyrusefer_wifi_process(seyrusefer->wifi);
         if (rc < 0) {
                 seyrusefer_errorf("seyrusefer_wifi_process failed, rc: %d", rc);

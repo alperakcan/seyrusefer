@@ -110,6 +110,21 @@ int seyrusefer_platform_init (void)
                 goto bail;
         }
 
+        rc = nvs_flash_init_partition("config");
+        if (rc == ESP_ERR_NVS_NO_FREE_PAGES ||
+            rc == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+                rc = nvs_flash_erase_partition("config");
+                if (rc != ESP_OK) {
+                        seyrusefer_errorf("can not erase flash");
+                        goto bail;
+                }
+                rc = nvs_flash_init_partition("config");
+        }
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("can not create nvs flash");
+                goto bail;
+        }
+
         rc = esp_netif_init();
         if (rc != ESP_OK) {
                 seyrusefer_errorf("can not create netif");
