@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -12,6 +13,7 @@
 #include "debug.h"
 #include "platform.h"
 #include "config.h"
+#include "settings.h"
 #include "httpd.h"
 
 struct seyrusefer_httpd {
@@ -53,13 +55,104 @@ static esp_err_t api_system_restart (httpd_req_t *req)
 
 static esp_err_t api_settings_get (httpd_req_t *req)
 {
+        int rc;
+        int length;
+        struct seyrusefer_settings *settings;
+
         struct seyrusefer_httpd *httpd = req->user_ctx;
 
-        (void) httpd;
-
-        httpd_resp_send(req, "{}", 2);
+        rc = seyrusefer_config_get_blob(httpd->config, "settings", (void **) &settings, &length);
+        if (rc == 0) {
+                httpd_resp_send(req, "{}", 2);
+        } else if (rc == 1) {
+                char *resp;
+                rc = asprintf(&resp,
+                        "{" \
+                        "  \"mode\":\"%s\"," \
+                        "  \"modes\":[{" \
+                        "    \"buttons\":[" \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }" \
+                        "    ]" \
+                        "   },{" \
+                        "    \"buttons\":[" \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }" \
+                        "    ]" \
+                        "   },{" \
+                        "    \"buttons\":[" \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }" \
+                        "    ]" \
+                        "   },{" \
+                        "    \"buttons\":[" \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }" \
+                        "    ]" \
+                        "   },{" \
+                        "    \"buttons\":[" \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }," \
+                        "      { \"key\":\"%s\" }" \
+                        "    ]" \
+                        "   }]" \
+                        "}",
+                        seyrusefer_settings_mode_to_string(settings->mode),
+                        seyrusefer_settings_key_to_string(settings->modes[0].buttons[0].key),
+                        seyrusefer_settings_key_to_string(settings->modes[0].buttons[1].key),
+                        seyrusefer_settings_key_to_string(settings->modes[0].buttons[2].key),
+                        seyrusefer_settings_key_to_string(settings->modes[0].buttons[3].key),
+                        seyrusefer_settings_key_to_string(settings->modes[0].buttons[4].key),
+                        seyrusefer_settings_key_to_string(settings->modes[1].buttons[0].key),
+                        seyrusefer_settings_key_to_string(settings->modes[1].buttons[1].key),
+                        seyrusefer_settings_key_to_string(settings->modes[1].buttons[2].key),
+                        seyrusefer_settings_key_to_string(settings->modes[1].buttons[3].key),
+                        seyrusefer_settings_key_to_string(settings->modes[1].buttons[4].key),
+                        seyrusefer_settings_key_to_string(settings->modes[2].buttons[0].key),
+                        seyrusefer_settings_key_to_string(settings->modes[2].buttons[1].key),
+                        seyrusefer_settings_key_to_string(settings->modes[2].buttons[2].key),
+                        seyrusefer_settings_key_to_string(settings->modes[2].buttons[3].key),
+                        seyrusefer_settings_key_to_string(settings->modes[2].buttons[4].key),
+                        seyrusefer_settings_key_to_string(settings->modes[3].buttons[0].key),
+                        seyrusefer_settings_key_to_string(settings->modes[3].buttons[1].key),
+                        seyrusefer_settings_key_to_string(settings->modes[3].buttons[2].key),
+                        seyrusefer_settings_key_to_string(settings->modes[3].buttons[3].key),
+                        seyrusefer_settings_key_to_string(settings->modes[3].buttons[4].key),
+                        seyrusefer_settings_key_to_string(settings->modes[4].buttons[0].key),
+                        seyrusefer_settings_key_to_string(settings->modes[4].buttons[1].key),
+                        seyrusefer_settings_key_to_string(settings->modes[4].buttons[2].key),
+                        seyrusefer_settings_key_to_string(settings->modes[4].buttons[3].key),
+                        seyrusefer_settings_key_to_string(settings->modes[4].buttons[4].key)
+                );
+                if (rc < 0) {
+                        seyrusefer_errorf("can not allocate memory");
+                        goto bail;
+                }
+                httpd_resp_send(req, resp, strlen(resp));
+                free(resp);
+                free(settings);
+        } else {
+                seyrusefer_errorf("can not get config");
+                goto bail;
+        }
 
         return ESP_OK;
+bail:   httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Internal Server Error");
+        return ESP_FAIL;
 }
 
 static esp_err_t www_index_html (httpd_req_t *req)

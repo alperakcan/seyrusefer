@@ -73,6 +73,9 @@ struct seyrusefer {
         int wifi_setup_led_brightness_dur;
         int64_t wifi_setup_led_brightness_tsms;
 
+        int stats_dur;
+        int64_t stats_tsms;
+
         struct seyrusefer_config *config;
         struct seyrusefer_timer *timer;
         struct seyrusefer_hid *hid;
@@ -388,6 +391,9 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->wifi_setup_led_brightness_tsms      = 0;
         seyrusefer->wifi_setup_led_brightness           = seyrusefer->wifi_setup_led_brightness_low;
 
+        seyrusefer->stats_dur                           = 10000;
+        seyrusefer->stats_tsms                          = 0;
+
         seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_1;
         for (i = 0; i < SEYRUSEFER_SETTINGS_MODE_COUNT; i++) {
                 for (j = 0; j < SEYRUSEFER_SETTINGS_BUTTON_COUNT; j++) {
@@ -395,7 +401,8 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
                 }
         }
 
-        seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_1;
+        seyrusefer->settings.magic = SEYRUSEFER_SETTINGS_MAGIC;
+        seyrusefer->settings.mode  = SEYRUSEFER_SETTINGS_MODE_1;
 
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_KEY_C;
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_KEY_R;
@@ -439,6 +446,30 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         if (seyrusefer->config == NULL) {
                 seyrusefer_errorf("can not create config");
                 goto bail;
+        }
+
+        {
+                int length;
+                struct seyrusefer_settings *settings;
+                rc = seyrusefer_config_get_blob(seyrusefer->config, "settings", (void **) &settings, &length);
+                if (rc == 0) {
+                        seyrusefer_infof("writing settings to config");
+                        rc = seyrusefer_config_set_blob(seyrusefer->config, "settings", &seyrusefer->settings, sizeof(struct seyrusefer_settings));
+                        if (rc != 0) {
+                                seyrusefer_errorf("can not set config");
+                                goto bail;
+                        }
+                } else if (rc == 1) {
+                        seyrusefer_infof("using settings from config");
+                        if (length == sizeof(struct seyrusefer_settings) &&
+                            settings->magic == seyrusefer->settings.magic) {
+                                memcpy(&seyrusefer->settings, settings, sizeof(struct seyrusefer_settings));
+                        }
+                        free(settings);
+                } else {
+                        seyrusefer_errorf("can not get config");
+                        goto bail;
+                }
         }
 
         seyrusefer_infof("creating timer");
@@ -596,6 +627,13 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 vTaskDelay(pdMS_TO_TICKS(1000));
                 seyrusefer_platform_restart();
                 return 0;
+        }
+
+        if (now < seyrusefer->stats_tsms ||
+            now - seyrusefer->stats_tsms >= seyrusefer->stats_dur * 1000) {
+                seyrusefer_debugf("stats:");
+                seyrusefer_debugf("  freeheap: %ld", esp_get_free_heap_size());
+                seyrusefer->stats_tsms = now;
         }
 
         rc = seyrusefer_hid_process(seyrusefer->hid);
@@ -756,6 +794,12 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                                 seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_5;
                                 seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
                         }
+                        seyrusefer_infof("writing settings to config");
+                        rc = seyrusefer_config_set_blob(seyrusefer->config, "settings", &seyrusefer->settings, sizeof(struct seyrusefer_settings));
+                        if (rc != 0) {
+                                seyrusefer_errorf("can not set config");
+                                goto bail;
+                        }
                 }
         } else if (seyrusefer->state == SEYRUSEFER_STATE_WIFI_SETUP) {
                 if (now < seyrusefer->wifi_setup_led_brightness_tsms ||
@@ -783,4 +827,14 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
         seyrusefer->pconnected = seyrusefer->connected;
         return 0;
 bail:   return -1;
+}
+
+const struct seyrusefer_settings * seyrusefer_settings_get (struct seyrusefer *seyrusefer)
+{
+        if (seyrusefer == NULL) {
+                seyrusefer_errorf("seyrusefer is invalid");
+                goto bail;
+        }
+        return &seyrusefer->settings;
+bail:   return NULL;
 }

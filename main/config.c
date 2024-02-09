@@ -218,6 +218,26 @@ int seyrusefer_config_set_string (struct seyrusefer_config *config, const char *
         return seyrusefer_config_set(config, key, value);
 }
 
+int seyrusefer_config_set_blob (struct seyrusefer_config *config, const char *key, const void *value, int length)
+{
+        int rc;
+        if (config == NULL) {
+                seyrusefer_errorf("config is invalid");
+                goto bail;
+        }
+        if (key == NULL) {
+                seyrusefer_errorf("key is invalid");
+                goto bail;
+        }
+        rc = nvs_set_blob(config->nvs, key, value, length);
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("nvs_set_blob failed, rc: %d", rc);
+                goto bail;
+        }
+        return 0;
+bail:   return -1;
+}
+
 char * seyrusefer_config_get (struct seyrusefer_config *config, const char *key)
 {
         int rc;
@@ -247,9 +267,6 @@ char * seyrusefer_config_get (struct seyrusefer_config *config, const char *key)
         }
         memset(value, 0, length + 1);
         rc = nvs_get_str(config->nvs, key, value, &length);
-        if (rc == ESP_ERR_NVS_NOT_FOUND) {
-                goto out;
-        }
         if (rc != ESP_OK) {
                 seyrusefer_errorf("nvs_get_str failed, rc: %d", rc);
                 goto bail;
@@ -344,6 +361,64 @@ char * seyrusefer_config_get_string (struct seyrusefer_config *config, const cha
                 return strdup(value);
         }
         return tmp;
+}
+
+int seyrusefer_config_get_blob (struct seyrusefer_config *config, const char *key, void **value, int *length)
+{
+        int rc;
+        int rs;
+        char *tvalue;
+        size_t tlength;
+        rs = 0;
+        tvalue  = NULL;
+        tlength = 0;
+        if (value != NULL) {
+                *value = NULL;
+        }
+        if (length != NULL) {
+                *length = 0;
+        }
+        if (config == NULL) {
+                seyrusefer_errorf("config is invalid");
+                goto bail;
+        }
+        if (key == NULL) {
+                seyrusefer_errorf("key is invalid");
+                goto bail;
+        }
+        rc = nvs_get_blob(config->nvs, key, tvalue, &tlength);
+        if (rc == ESP_ERR_NVS_NOT_FOUND) {
+                goto out;
+        }
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("nvs_get_blob failed, rc: %d", rc);
+                goto bail;
+        }
+        tvalue = malloc(tlength + 1);
+        if (tvalue == NULL) {
+                seyrusefer_errorf("can not allocate memory");
+                goto bail;
+        }
+        memset(tvalue, 0, tlength + 1);
+        rc = nvs_get_blob(config->nvs, key, tvalue, &tlength);
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("nvs_get_blob failed, rc: %d", rc);
+                goto bail;
+        }
+        if (value != NULL) {
+                *value = tvalue;
+        } else {
+                free(tvalue);
+        }
+        if (length != NULL) {
+                *length = tlength;
+        }
+        rs = 1;
+out:    return rs;
+bail:   if (tvalue != NULL) {
+                free(tvalue);
+        }
+        return -1;
 }
 
 int seyrusefer_config_print (struct seyrusefer_config *config)

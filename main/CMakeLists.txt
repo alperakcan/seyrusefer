@@ -11,6 +11,7 @@ idf_component_register(
                 "hid.c"
                 "httpd.c"
                 "platform.c"
+                "settings.c"
                 "timer.c"
                 "uuid.c"
                 "wifi.c"

@@ -114,32 +114,32 @@
                                         console.log("  modes[4].buttons[4].key  : {0}".format(json.modes[4].buttons[4].key));
 
                                         let parameters = [
-                                                { "name": "mode", "value": json.mode, "type": integer },
-                                                { "name": "modes:1:buttons:1:key", "value": json.modes[0].buttons[0].key, "type": "string" },
-                                                { "name": "modes:1:buttons:2:key", "value": json.modes[0].buttons[1].key, "type": "string" },
-                                                { "name": "modes:1:buttons:3:key", "value": json.modes[0].buttons[2].key, "type": "string" },
-                                                { "name": "modes:1:buttons:4:key", "value": json.modes[0].buttons[3].key, "type": "string" },
-                                                { "name": "modes:1:buttons:5:key", "value": json.modes[0].buttons[4].key, "type": "string" },
-                                                { "name": "modes:2:buttons:1:key", "value": json.modes[1].buttons[0].key, "type": "string" },
-                                                { "name": "modes:2:buttons:2:key", "value": json.modes[1].buttons[1].key, "type": "string" },
-                                                { "name": "modes:2:buttons:3:key", "value": json.modes[1].buttons[2].key, "type": "string" },
-                                                { "name": "modes:2:buttons:4:key", "value": json.modes[1].buttons[3].key, "type": "string" },
-                                                { "name": "modes:2:buttons:5:key", "value": json.modes[1].buttons[4].key, "type": "string" },
-                                                { "name": "modes:3:buttons:1:key", "value": json.modes[2].buttons[0].key, "type": "string" },
-                                                { "name": "modes:3:buttons:2:key", "value": json.modes[2].buttons[1].key, "type": "string" },
-                                                { "name": "modes:3:buttons:3:key", "value": json.modes[2].buttons[2].key, "type": "string" },
-                                                { "name": "modes:3:buttons:4:key", "value": json.modes[2].buttons[3].key, "type": "string" },
-                                                { "name": "modes:3:buttons:5:key", "value": json.modes[2].buttons[4].key, "type": "string" },
-                                                { "name": "modes:4:buttons:1:key", "value": json.modes[3].buttons[0].key, "type": "string" },
-                                                { "name": "modes:4:buttons:2:key", "value": json.modes[3].buttons[1].key, "type": "string" },
-                                                { "name": "modes:4:buttons:3:key", "value": json.modes[3].buttons[2].key, "type": "string" },
-                                                { "name": "modes:4:buttons:4:key", "value": json.modes[3].buttons[3].key, "type": "string" },
-                                                { "name": "modes:4:buttons:5:key", "value": json.modes[3].buttons[4].key, "type": "string" },
-                                                { "name": "modes:5:buttons:1:key", "value": json.modes[4].buttons[0].key, "type": "string" },
-                                                { "name": "modes:5:buttons:2:key", "value": json.modes[4].buttons[1].key, "type": "string" },
-                                                { "name": "modes:5:buttons:3:key", "value": json.modes[4].buttons[2].key, "type": "string" },
-                                                { "name": "modes:5:buttons:4:key", "value": json.modes[4].buttons[3].key, "type": "string" },
-                                                { "name": "modes:5:buttons:5:key", "value": json.modes[4].buttons[4].key, "type": "string" },
+                                                { "name": "MODE", "value": json.mode, "type": "mode" },
+                                                { "name": "MODE_1:BUTTON_1:KEY", "value": json.modes[0].buttons[0].key, "type": "key" },
+                                                { "name": "MODE_1:BUTTON_2:KEY", "value": json.modes[0].buttons[1].key, "type": "key" },
+                                                { "name": "MODE_1:BUTTON_3:KEY", "value": json.modes[0].buttons[2].key, "type": "key" },
+                                                { "name": "MODE_1:BUTTON_4:KEY", "value": json.modes[0].buttons[3].key, "type": "key" },
+                                                { "name": "MODE_1:BUTTON_5:KEY", "value": json.modes[0].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_2:BUTTON_1:KEY", "value": json.modes[1].buttons[0].key, "type": "key" },
+                                                { "name": "MODE_2:BUTTON_2:KEY", "value": json.modes[1].buttons[1].key, "type": "key" },
+                                                { "name": "MODE_2:BUTTON_3:KEY", "value": json.modes[1].buttons[2].key, "type": "key" },
+                                                { "name": "MODE_2:BUTTON_4:KEY", "value": json.modes[1].buttons[3].key, "type": "key" },
+                                                { "name": "MODE_2:BUTTON_5:KEY", "value": json.modes[1].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_3:BUTTON_1:KEY", "value": json.modes[2].buttons[0].key, "type": "key" },
+                                                { "name": "MODE_3:BUTTON_2:KEY", "value": json.modes[2].buttons[1].key, "type": "key" },
+                                                { "name": "MODE_3:BUTTON_3:KEY", "value": json.modes[2].buttons[2].key, "type": "key" },
+                                                { "name": "MODE_3:BUTTON_4:KEY", "value": json.modes[2].buttons[3].key, "type": "key" },
+                                                { "name": "MODE_3:BUTTON_5:KEY", "value": json.modes[2].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_4:BUTTON_1:KEY", "value": json.modes[3].buttons[0].key, "type": "key" },
+                                                { "name": "MODE_4:BUTTON_2:KEY", "value": json.modes[3].buttons[1].key, "type": "key" },
+                                                { "name": "MODE_4:BUTTON_3:KEY", "value": json.modes[3].buttons[2].key, "type": "key" },
+                                                { "name": "MODE_4:BUTTON_4:KEY", "value": json.modes[3].buttons[3].key, "type": "key" },
+                                                { "name": "MODE_4:BUTTON_5:KEY", "value": json.modes[3].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_5:BUTTON_1:KEY", "value": json.modes[4].buttons[0].key, "type": "key" },
+                                                { "name": "MODE_5:BUTTON_2:KEY", "value": json.modes[4].buttons[1].key, "type": "key" },
+                                                { "name": "MODE_5:BUTTON_3:KEY", "value": json.modes[4].buttons[2].key, "type": "key" },
+                                                { "name": "MODE_5:BUTTON_4:KEY", "value": json.modes[4].buttons[3].key, "type": "key" },
+                                                { "name": "MODE_5:BUTTON_5:KEY", "value": json.modes[4].buttons[4].key, "type": "key" },
                                         ];
 
                                         h  = ``;
@@ -152,7 +152,189 @@
                                                 h += `<tr>`;
                                                 h += `<td></td>`;
                                                 h += `<td>${n}</td>`;
-                                                if (t == "string") {
+                                                if (t == "mode") {
+                                                        let modes = [
+                                                                "MODE_1",
+                                                                "MODE_2",
+                                                                "MODE_3",
+                                                                "MODE_4",
+                                                                "MODE_5"
+                                                        ];
+                                                        h += `<td>`;
+                                                        h += `<select id="elementSettings${n}" class="form-select" aria-label="Default select example">`;
+                                                        for (j = 0; j < modes.length; j++) {
+                                                                if (modes[j] == v) {
+                                                                        h += `<option value="${modes[j]}" selected>${modes[j]}</option>`;
+                                                                } else {
+                                                                        h += `<option value="${modes[j]}">${modes[j]}</option>`;
+                                                                }
+                                                        }
+                                                        h += `</select>`;
+                                                        h += `</td>`;
+                                                } else if (t == "key") {
+                                                        let keys = [
+                                                                "KEY_RESERVED",
+                                                                "KEY_A",
+                                                                "KEY_B",
+                                                                "KEY_C",
+                                                                "KEY_D",
+                                                                "KEY_E",
+                                                                "KEY_F",
+                                                                "KEY_G",
+                                                                "KEY_H",
+                                                                "KEY_I",
+                                                                "KEY_J",
+                                                                "KEY_K",
+                                                                "KEY_L",
+                                                                "KEY_M",
+                                                                "KEY_N",
+                                                                "KEY_O",
+                                                                "KEY_P",
+                                                                "KEY_Q",
+                                                                "KEY_R",
+                                                                "KEY_S",
+                                                                "KEY_T",
+                                                                "KEY_U",
+                                                                "KEY_V",
+                                                                "KEY_W",
+                                                                "KEY_X",
+                                                                "KEY_Y",
+                                                                "KEY_Z",
+                                                                "KEY_1",
+                                                                "KEY_2",
+                                                                "KEY_3",
+                                                                "KEY_4",
+                                                                "KEY_5",
+                                                                "KEY_6",
+                                                                "KEY_7",
+                                                                "KEY_8",
+                                                                "KEY_9",
+                                                                "KEY_0",
+                                                                "KEY_RETURN",
+                                                                "KEY_ESCAPE",
+                                                                "KEY_DELETE",
+                                                                "KEY_TAB",
+                                                                "KEY_SPACEBAR",
+                                                                "KEY_MINUS",
+                                                                "KEY_EQUAL",
+                                                                "KEY_LEFT_BRKT",
+                                                                "KEY_RIGHT_BRKT",
+                                                                "KEY_BACK_SLASH",
+                                                                "KEY_SEMI_COLON",
+                                                                "KEY_SGL_QUOTE",
+                                                                "KEY_GRV_ACCENT",
+                                                                "KEY_COMMA",
+                                                                "KEY_DOT",
+                                                                "KEY_FWD_SLASH",
+                                                                "KEY_CAPS_LOCK",
+                                                                "KEY_F1",
+                                                                "KEY_F2",
+                                                                "KEY_F3",
+                                                                "KEY_F4",
+                                                                "KEY_F5",
+                                                                "KEY_F6",
+                                                                "KEY_F7",
+                                                                "KEY_F8",
+                                                                "KEY_F9",
+                                                                "KEY_F10",
+                                                                "KEY_F11",
+                                                                "KEY_F12",
+                                                                "KEY_PRNT_SCREEN",
+                                                                "KEY_SCROLL_LOCK",
+                                                                "KEY_PAUSE",
+                                                                "KEY_INSERT",
+                                                                "KEY_HOME",
+                                                                "KEY_PAGE_UP",
+                                                                "KEY_DELETE_FWD",
+                                                                "KEY_END",
+                                                                "KEY_PAGE_DOWN",
+                                                                "KEY_RIGHT_ARROW",
+                                                                "KEY_LEFT_ARROW",
+                                                                "KEY_DOWN_ARROW",
+                                                                "KEY_UP_ARROW",
+                                                                "KEY_NUM_LOCK",
+                                                                "KEY_DIVIDE",
+                                                                "KEY_MULTIPLY",
+                                                                "KEY_SUBTRACT",
+                                                                "KEY_ADD",
+                                                                "KEY_ENTER",
+                                                                "KEYPAD_1",
+                                                                "KEYPAD_2",
+                                                                "KEYPAD_3",
+                                                                "KEYPAD_4",
+                                                                "KEYPAD_5",
+                                                                "KEYPAD_6",
+                                                                "KEYPAD_7",
+                                                                "KEYPAD_8",
+                                                                "KEYPAD_9",
+                                                                "KEYPAD_0",
+                                                                "KEYPAD_DOT",
+                                                                "KEY_MUTE",
+                                                                "KEY_VOLUME_UP",
+                                                                "KEY_VOLUME_DOWN",
+                                                                "KEY_LEFT_CTRL",
+                                                                "KEY_LEFT_SHIFT",
+                                                                "KEY_LEFT_ALT",
+                                                                "KEY_LEFT_GUI",
+                                                                "KEY_RIGHT_CTRL",
+                                                                "KEY_RIGHT_SHIFT",
+                                                                "KEY_RIGHT_ALT",
+                                                                "KEY_RIGHT_GUI",
+
+                                                                "MOUSE_LEFT",
+                                                                "MOUSE_MIDDLE",
+                                                                "MOUSE_RIGHT",
+
+                                                                "CONSUMER_POWER",
+                                                                "CONSUMER_RESET",
+                                                                "CONSUMER_SLEEP",
+
+                                                                "CONSUMER_MENU",
+                                                                "CONSUMER_SELECTION",
+                                                                "CONSUMER_ASSIGN_SEL",
+                                                                "CONSUMER_MODE_STEP",
+                                                                "CONSUMER_RECALL_LAST",
+                                                                "CONSUMER_QUIT",
+                                                                "CONSUMER_HELP",
+                                                                "CONSUMER_CHANNEL_UP",
+                                                                "CONSUMER_CHANNEL_DOWN",
+
+                                                                "CONSUMER_PLAY",
+                                                                "CONSUMER_PAUSE",
+                                                                "CONSUMER_RECORD",
+                                                                "CONSUMER_FAST_FORWARD",
+                                                                "CONSUMER_REWIND",
+                                                                "CONSUMER_SCAN_NEXT_TRK",
+                                                                "CONSUMER_SCAN_PREV_TRK",
+                                                                "CONSUMER_STOP",
+                                                                "CONSUMER_EJECT",
+                                                                "CONSUMER_RANDOM_PLAY",
+                                                                "CONSUMER_SELECT_DISC",
+                                                                "CONSUMER_ENTER_DISC",
+                                                                "CONSUMER_REPEAT",
+                                                                "CONSUMER_STOP_EJECT",
+                                                                "CONSUMER_PLAY_PAUSE",
+                                                                "CONSUMER_PLAY_SKIP",
+
+                                                                "CONSUMER_VOLUME",
+                                                                "CONSUMER_BALANCE",
+                                                                "CONSUMER_MUTE",
+                                                                "CONSUMER_BASS",
+                                                                "CONSUMER_VOLUME_UP",
+                                                                "CONSUMER_VOLUME_DOWN",
+                                                        ];
+                                                        h += `<td>`;
+                                                        h += `<select id="elementSettings${n}" class="form-select" aria-label="Default select example">`;
+                                                        for (j = 0; j < keys.length; j++) {
+                                                                if (keys[j] == v) {
+                                                                        h += `<option value="${keys[j]}" selected>${keys[j]}</option>`;
+                                                                } else {
+                                                                        h += `<option value="${keys[j]}">${keys[j]}</option>`;
+                                                                }
+                                                        }
+                                                        h += `</select>`;
+                                                        h += `</td>`;
+                                                } else if (t == "string") {
                                                         h += `<td><input id="elementSettings${n}" type="text" class="form-control" value="${v}""></td>`;
                                                 } else if (t == "integer") {
                                                         h += `<td><input id="elementSettings${n}" type="text" oninput="this.value=this.value.replace(/[^0-9]/g,'');" class="form-control" value="${v}""></td>`;
