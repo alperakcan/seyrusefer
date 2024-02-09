@@ -16,6 +16,8 @@ int seyrusefer_hid_process (struct seyrusefer_hid *hid);
 
 int seyrusefer_hid_start (struct seyrusefer_hid *hid);
 int seyrusefer_hid_stop (struct seyrusefer_hid *hid);
-
 int seyrusefer_hid_ap_restart (struct seyrusefer_hid *hid);
 int seyrusefer_hid_enabled (struct seyrusefer_hid *hid);
+
+int seyrusefer_hid_connected (struct seyrusefer_hid *hid);
+int seyrusefer_hid_send_key (struct seyrusefer_hid *hid, int key, int pressed);

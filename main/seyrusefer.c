@@ -15,6 +15,7 @@
 #include "config.h"
 #include "timer.h"
 #include "hid.h"
+#include "hid_dev.h"
 #include "wifi.h"
 #include "httpd.h"
 #include "seyrusefer.h"
@@ -25,11 +26,56 @@ enum {
         SEYRUSEFER_STATE_NONE,
         SEYRUSEFER_STATE_INIT,
         SEYRUSEFER_STATE_RUNNING,
+        SEYRUSEFER_STATE_MODE_CHANGE,
         SEYRUSEFER_STATE_ERROR
 #define SEYRUSEFER_STATE_NONE                           SEYRUSEFER_STATE_NONE
 #define SEYRUSEFER_STATE_INIT                           SEYRUSEFER_STATE_INIT
 #define SEYRUSEFER_STATE_RUNNING                        SEYRUSEFER_STATE_RUNNING
+#define SEYRUSEFER_STATE_MODE_CHANGE                    SEYRUSEFER_STATE_MODE_CHANGE
 #define SEYRUSEFER_STATE_ERROR                          SEYRUSEFER_STATE_ERROR
+};
+
+enum {
+        SEYRUSEFER_LAYOUT_BUTTON_1                      = 0,
+        SEYRUSEFER_LAYOUT_BUTTON_2                      = 1,
+        SEYRUSEFER_LAYOUT_BUTTON_3                      = 2,
+        SEYRUSEFER_LAYOUT_BUTTON_4                      = 3,
+        SEYRUSEFER_LAYOUT_BUTTON_5                      = 4,
+        SEYRUSEFER_LAYOUT_BUTTON_COUNT                  = 5
+#define SEYRUSEFER_LAYOUT_BUTTON_1                      SEYRUSEFER_LAYOUT_BUTTON_1
+#define SEYRUSEFER_LAYOUT_BUTTON_2                      SEYRUSEFER_LAYOUT_BUTTON_2
+#define SEYRUSEFER_LAYOUT_BUTTON_3                      SEYRUSEFER_LAYOUT_BUTTON_3
+#define SEYRUSEFER_LAYOUT_BUTTON_4                      SEYRUSEFER_LAYOUT_BUTTON_4
+#define SEYRUSEFER_LAYOUT_BUTTON_5                      SEYRUSEFER_LAYOUT_BUTTON_5
+#define SEYRUSEFER_LAYOUT_BUTTON_COUNT                  SEYRUSEFER_LAYOUT_BUTTON_COUNT
+};
+
+enum {
+        SEYRUSEFER_LAYOUT_MODE_1                        = 0,
+        SEYRUSEFER_LAYOUT_MODE_2                        = 1,
+        SEYRUSEFER_LAYOUT_MODE_3                        = 2,
+        SEYRUSEFER_LAYOUT_MODE_4                        = 3,
+        SEYRUSEFER_LAYOUT_MODE_5                        = 4,
+        SEYRUSEFER_LAYOUT_MODE_COUNT                    = 5
+#define SEYRUSEFER_LAYOUT_MODE_1                        SEYRUSEFER_LAYOUT_MODE_1
+#define SEYRUSEFER_LAYOUT_MODE_2                        SEYRUSEFER_LAYOUT_MODE_2
+#define SEYRUSEFER_LAYOUT_MODE_3                        SEYRUSEFER_LAYOUT_MODE_3
+#define SEYRUSEFER_LAYOUT_MODE_4                        SEYRUSEFER_LAYOUT_MODE_4
+#define SEYRUSEFER_LAYOUT_MODE_5                        SEYRUSEFER_LAYOUT_MODE_5
+#define SEYRUSEFER_LAYOUT_MODE_COUNT                    SEYRUSEFER_LAYOUT_MODE_COUNT
+};
+
+struct seyrusefer_layout_button_config {
+        int key;
+};
+
+struct seyrusefer_layout_mode_config {
+        struct seyrusefer_layout_button_config buttons[SEYRUSEFER_LAYOUT_BUTTON_COUNT];
+};
+
+struct seyrusefer_layout_config {
+        int mode;
+        struct seyrusefer_layout_mode_config modes[SEYRUSEFER_LAYOUT_MODE_COUNT];
 };
 
 struct seyrusefer {
@@ -40,6 +86,16 @@ struct seyrusefer {
         int buttons;
         int pbuttons;
 
+        int connected;
+        int pconnected;
+
+        int led_brightness;
+        int led_brightness_low;
+        int led_brightness_high;
+        int led_brightness_op;
+        int led_brightness_dur;
+        int led_brightness_tick;
+
         struct seyrusefer_config *config;
         struct seyrusefer_timer *timer;
         struct seyrusefer_hid *hid;
@@ -47,6 +103,8 @@ struct seyrusefer {
         struct seyrusefer_httpd *httpd;
 
         struct seyrusefer_alarm *process_alarm;
+
+        struct seyrusefer_layout_config layout_config;
 };
 
 static const char * seyrusefer_state_string (int state);
@@ -203,6 +261,9 @@ bail:   return -1;
 
 struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
 {
+        int i;
+        int j;
+
         int rc;
         struct seyrusefer *seyrusefer;
         struct seyrusefer_config_init_options seyrusefer_config_init_options;
@@ -229,6 +290,25 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->state       = SEYRUSEFER_STATE_NONE;
         seyrusefer->pstate      = SEYRUSEFER_STATE_NONE;
         seyrusefer->restart     = 0;
+
+        seyrusefer->buttons     = 0;
+        seyrusefer->pbuttons    = 0;
+
+        seyrusefer->connected   = 0;
+        seyrusefer->pconnected  = -1;
+
+        seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_1;
+        for (i = 0; i < SEYRUSEFER_LAYOUT_MODE_COUNT; i++) {
+                for (j = 0; j < SEYRUSEFER_LAYOUT_BUTTON_COUNT; j++) {
+                        seyrusefer->layout_config.modes[i].buttons[j].key = 0;
+                }
+        }
+
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = HID_KEY_C;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = HID_KEY_R;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = HID_KEY_D;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = HID_KEY_VOLUME_UP;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = HID_KEY_VOLUME_DOWN;
 
         seyrusefer_infof("creating config");
         seyrusefer_infof("  path     : %s", "config");
@@ -399,62 +479,68 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 goto bail;
         }
 
+        seyrusefer->connected = seyrusefer_hid_connected(seyrusefer->hid);
+        if (seyrusefer->connected != seyrusefer->pconnected) {
+                seyrusefer->pconnected = seyrusefer->connected;
+                seyrusefer_debugf("connected: %d", seyrusefer->connected);
+
+                if (seyrusefer->connected == 0) {
+                        seyrusefer->led_brightness_low  = 2;
+                        seyrusefer->led_brightness_high = 50;
+                        seyrusefer->led_brightness_op   = 1;
+                        seyrusefer->led_brightness_dur  = 2;
+                        seyrusefer->led_brightness_tick = 0;
+                        seyrusefer->led_brightness      = seyrusefer->led_brightness_low;
+                } else if (seyrusefer->connected == 1) {
+                        seyrusefer_platform_set_led(0);
+                }
+        }
+        if (seyrusefer->connected == 0) {
+                seyrusefer_platform_set_led(seyrusefer->led_brightness);
+                seyrusefer->led_brightness_tick += 1;
+                if (seyrusefer->led_brightness_tick >= seyrusefer->led_brightness_dur) {
+                        if (seyrusefer->led_brightness > seyrusefer->led_brightness_high) {
+                                seyrusefer->led_brightness    = seyrusefer->led_brightness_high;
+                                seyrusefer->led_brightness_op = -1;
+                        } else if (seyrusefer->led_brightness < seyrusefer->led_brightness_low) {
+                                seyrusefer->led_brightness    = seyrusefer->led_brightness_low;
+                                seyrusefer->led_brightness_op = +1;
+                        } else {
+                                seyrusefer->led_brightness += seyrusefer->led_brightness_op;
+                        }
+                        seyrusefer->led_brightness_tick = 0;
+                }
+        } else if (seyrusefer->connected == 1) {
+        } else {
+                seyrusefer_errorf("seyrusefer_hid_connected failed, rc: %d", rc);
+                        goto bail;
+        }
+
         seyrusefer->buttons = seyrusefer_platform_get_buttons();
         if (seyrusefer->buttons != seyrusefer->pbuttons) {
                 int pressed  = seyrusefer->buttons & ~seyrusefer->pbuttons;
                 int released = seyrusefer->pbuttons & ~seyrusefer->buttons;
+                int buttons  = pressed | released;
+
                 seyrusefer->pbuttons = seyrusefer->buttons;
-                seyrusefer_debugf("buttons: 0x%08x, pressed: 0x%08x, released: 0x%08x", seyrusefer->buttons, pressed, released);
-                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_1) {
-                        seyrusefer_platform_set_led(0);
+                seyrusefer_debugf("buttons: 0x%08x, pressed: 0x%08x, released: 0x%08x", buttons, pressed, released);
 
-                        int rc;
-                        seyrusefer_infof("stoping wifi");
-                        rc = seyrusefer_wifi_stop(seyrusefer->wifi);
-                        if (rc < 0) {
-                                seyrusefer_errorf("can not stop wifi");
-                                goto bail;
-                        }
-                        seyrusefer_infof("stoping httpd");
-                        rc = seyrusefer_httpd_stop(seyrusefer->httpd);
-                        if (rc < 0) {
-                                seyrusefer_errorf("can not stop httpd");
-                                goto bail;
-                        }
-                }
-                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_2) {
-                        seyrusefer_platform_set_led(20);
-                }
-                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_3) {
-                        seyrusefer_platform_set_led(40);
+                seyrusefer_platform_set_led(seyrusefer->buttons ? 50 : 0);
 
-                        int rc;
-                        struct seyrusefer_wifi_ap_config seyrusefer_wifi_ap_config;
-                        snprintf(seyrusefer_wifi_ap_config.ssid, sizeof(seyrusefer_wifi_ap_config.ssid), "seyrusefer");
-                        snprintf(seyrusefer_wifi_ap_config.password, sizeof(seyrusefer_wifi_ap_config.password), "seyrusefer");
-                        rc = seyrusefer_wifi_ap_set_config(seyrusefer->wifi, &seyrusefer_wifi_ap_config);
-                        if (rc < 0) {
-                                seyrusefer_errorf("can setup wifi ap");
-                                goto bail;
-                        }
-                        seyrusefer_infof("starting wifi");
-                        rc = seyrusefer_wifi_start(seyrusefer->wifi);
-                        if (rc < 0) {
-                                seyrusefer_errorf("can not start wifi");
-                                goto bail;
-                        }
-                        seyrusefer_infof("starting httpd");
-                        rc = seyrusefer_httpd_start(seyrusefer->httpd);
-                        if (rc < 0) {
-                                seyrusefer_errorf("can not start httpd");
-                                goto bail;
-                        }
+                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_1) {
+                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_1);
                 }
-                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_4) {
-                        seyrusefer_platform_set_led(60);
+                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_2) {
+                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_2);
                 }
-                if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_5) {
-                        seyrusefer_platform_set_led(80);
+                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_3) {
+                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_3);
+                }
+                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_4) {
+                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_4);
+                }
+                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_5) {
+                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_5);
                 }
         }
 

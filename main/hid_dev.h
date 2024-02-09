@@ -14,7 +14,6 @@
 extern "C" {
 #endif
 
-
 /* HID Report type */
 #define HID_TYPE_INPUT       1
 #define HID_TYPE_OUTPUT      2
@@ -233,6 +232,18 @@ typedef struct
   uint8_t     hidFlags;         // HID feature flags
 
 } hid_dev_cfg_t;
+
+// HID keyboard input report length
+#define HID_KEYBOARD_IN_RPT_LEN     8
+
+// HID LED output report length
+#define HID_LED_OUT_RPT_LEN         1
+
+// HID mouse input report length
+#define HID_MOUSE_IN_RPT_LEN        5
+
+// HID consumer control input report length
+#define HID_CC_IN_RPT_LEN           2
 
 void hid_dev_register_reports(uint8_t num_reports, hid_report_map_t *p_report);
 

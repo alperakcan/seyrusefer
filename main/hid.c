@@ -20,6 +20,7 @@
 #include "debug.h"
 #include "config.h"
 #include "hid_hidd_prf_api.h"
+#include "hid_dev.h"
 #include "hid.h"
 
 struct seyrusefer_hid {
@@ -29,6 +30,8 @@ struct seyrusefer_hid {
 
         int sec_conn;
         uint16_t hid_conn_id;
+
+        uint8_t keyboard_buffer[5];
 };
 
 #define HIDD_DEVICE_NAME            "Seyrusefer"
@@ -42,7 +45,7 @@ static esp_ble_adv_data_t hidd_adv_data = {
         .include_txpower        = true,
         .min_interval           = 0x0006,       // slave connection min interval, Time = min_interval * 1.25 msec
         .max_interval           = 0x0010,       // slave connection max interval, Time = max_interval * 1.25 msec
-        .appearance             = 0x03c0,       // HID Keyboard
+        .appearance             = 0x03c1,       // HID Keyboard
         .manufacturer_len       = 0,
         .p_manufacturer_data    = NULL,
         .service_data_len       = 0,
@@ -75,7 +78,6 @@ static void hidd_event_callback (esp_hidd_cb_event_t event, esp_hidd_cb_param_t 
                                 //esp_bd_addr_t rand_addr = {0x04,0x11,0x11,0x11,0x11,0x05};
                                 esp_ble_gap_set_device_name(HIDD_DEVICE_NAME);
                                 esp_ble_gap_config_adv_data(&hidd_adv_data);
-
                         }
                         break;
                 }
@@ -365,4 +367,52 @@ bail:   return -1;
 int seyrusefer_hid_enabled (struct seyrusefer_hid *hid)
 {
         return hid->enabled;
+}
+
+int seyrusefer_hid_connected (struct seyrusefer_hid *hid)
+{
+        return hid->sec_conn;
+}
+
+int seyrusefer_hid_send_key (struct seyrusefer_hid *hid, int key, int pressed)
+{
+        int rc;
+        rc = 0;
+        if (key >= HID_KEY_RESERVED && key <= HID_KEY_RIGHT_GUI) {
+                if (key >= HID_KEY_LEFT_CTRL && key <= HID_KEY_RIGHT_GUI) {
+                } else {
+                        bool found = false;
+                        if (pressed) {
+                                for (int i = 0; i < sizeof(hid->keyboard_buffer); ++i) {
+                                        if (hid->keyboard_buffer[i] == 0) {
+                                                hid->keyboard_buffer[i] = key;
+                                                found = true;
+                                                break;
+                                        }
+                                }
+                        } else {
+                                for (int i = 0; i < sizeof(hid->keyboard_buffer); ++i) {
+                                        if (!found) {
+                                                if (hid->keyboard_buffer[i] == key) {
+                                                        hid->keyboard_buffer[i] = 0;
+                                                        found = true;
+                                                }
+                                        } else {
+                                                if (hid->keyboard_buffer[i] == 0) {
+                                                        break;
+                                                }
+                                                hid->keyboard_buffer[i-1] = hid->keyboard_buffer[i];
+                                                hid->keyboard_buffer[i] = 0;
+                                        }
+                                }
+                        }
+                        if (!found) {
+                                rc = 1;
+                        }
+                }
+        }
+        if (rc == 0) {
+                esp_hidd_send_keyboard_value(hid->hid_conn_id, 0, hid->keyboard_buffer, sizeof(hid->keyboard_buffer));
+        }
+        return 0;
 }
