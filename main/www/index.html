@@ -86,60 +86,65 @@
                                         let h;
 
                                         console.log("{0}{1}".format(apiUrl, apiSettingsGet));
-                                        console.log("  mode                     : {0}".format(json.mode));
-                                        console.log("  modes[0].buttons[0].key  : {0}".format(json.modes[0].buttons[0].key));
-                                        console.log("  modes[0].buttons[1].key  : {0}".format(json.modes[0].buttons[1].key));
-                                        console.log("  modes[0].buttons[2].key  : {0}".format(json.modes[0].buttons[2].key));
-                                        console.log("  modes[0].buttons[3].key  : {0}".format(json.modes[0].buttons[3].key));
-                                        console.log("  modes[0].buttons[4].key  : {0}".format(json.modes[0].buttons[4].key));
-                                        console.log("  modes[1].buttons[0].key  : {0}".format(json.modes[1].buttons[0].key));
-                                        console.log("  modes[1].buttons[1].key  : {0}".format(json.modes[1].buttons[1].key));
-                                        console.log("  modes[1].buttons[2].key  : {0}".format(json.modes[1].buttons[2].key));
-                                        console.log("  modes[1].buttons[3].key  : {0}".format(json.modes[1].buttons[3].key));
-                                        console.log("  modes[1].buttons[4].key  : {0}".format(json.modes[1].buttons[4].key));
-                                        console.log("  modes[2].buttons[0].key  : {0}".format(json.modes[2].buttons[0].key));
-                                        console.log("  modes[2].buttons[1].key  : {0}".format(json.modes[2].buttons[1].key));
-                                        console.log("  modes[2].buttons[2].key  : {0}".format(json.modes[2].buttons[2].key));
-                                        console.log("  modes[2].buttons[3].key  : {0}".format(json.modes[2].buttons[3].key));
-                                        console.log("  modes[2].buttons[4].key  : {0}".format(json.modes[2].buttons[4].key));
-                                        console.log("  modes[3].buttons[0].key  : {0}".format(json.modes[3].buttons[0].key));
-                                        console.log("  modes[3].buttons[1].key  : {0}".format(json.modes[3].buttons[1].key));
-                                        console.log("  modes[3].buttons[2].key  : {0}".format(json.modes[3].buttons[2].key));
-                                        console.log("  modes[3].buttons[3].key  : {0}".format(json.modes[3].buttons[3].key));
-                                        console.log("  modes[3].buttons[4].key  : {0}".format(json.modes[3].buttons[4].key));
-                                        console.log("  modes[4].buttons[0].key  : {0}".format(json.modes[4].buttons[0].key));
-                                        console.log("  modes[4].buttons[1].key  : {0}".format(json.modes[4].buttons[1].key));
-                                        console.log("  modes[4].buttons[2].key  : {0}".format(json.modes[4].buttons[2].key));
-                                        console.log("  modes[4].buttons[3].key  : {0}".format(json.modes[4].buttons[3].key));
-                                        console.log("  modes[4].buttons[4].key  : {0}".format(json.modes[4].buttons[4].key));
+                                        console.log("  mode                    : {0}".format(json.mode));
+                                        console.log("  modes[0].buttons[0].key : {0}".format(json.modes[0].buttons[0].key));
+                                        console.log("  modes[0].buttons[1].key : {0}".format(json.modes[0].buttons[1].key));
+                                        console.log("  modes[0].buttons[2].key : {0}".format(json.modes[0].buttons[2].key));
+                                        console.log("  modes[0].buttons[3].key : {0}".format(json.modes[0].buttons[3].key));
+                                        console.log("  modes[0].buttons[4].key : {0}".format(json.modes[0].buttons[4].key));
+                                        console.log("  modes[1].buttons[0].key : {0}".format(json.modes[1].buttons[0].key));
+                                        console.log("  modes[1].buttons[1].key : {0}".format(json.modes[1].buttons[1].key));
+                                        console.log("  modes[1].buttons[2].key : {0}".format(json.modes[1].buttons[2].key));
+                                        console.log("  modes[1].buttons[3].key : {0}".format(json.modes[1].buttons[3].key));
+                                        console.log("  modes[1].buttons[4].key : {0}".format(json.modes[1].buttons[4].key));
+                                        console.log("  modes[2].buttons[0].key : {0}".format(json.modes[2].buttons[0].key));
+                                        console.log("  modes[2].buttons[1].key : {0}".format(json.modes[2].buttons[1].key));
+                                        console.log("  modes[2].buttons[2].key : {0}".format(json.modes[2].buttons[2].key));
+                                        console.log("  modes[2].buttons[3].key : {0}".format(json.modes[2].buttons[3].key));
+                                        console.log("  modes[2].buttons[4].key : {0}".format(json.modes[2].buttons[4].key));
+                                        console.log("  modes[3].buttons[0].key : {0}".format(json.modes[3].buttons[0].key));
+                                        console.log("  modes[3].buttons[1].key : {0}".format(json.modes[3].buttons[1].key));
+                                        console.log("  modes[3].buttons[2].key : {0}".format(json.modes[3].buttons[2].key));
+                                        console.log("  modes[3].buttons[3].key : {0}".format(json.modes[3].buttons[3].key));
+                                        console.log("  modes[3].buttons[4].key : {0}".format(json.modes[3].buttons[4].key));
+                                        console.log("  modes[4].buttons[0].key : {0}".format(json.modes[4].buttons[0].key));
+                                        console.log("  modes[4].buttons[1].key : {0}".format(json.modes[4].buttons[1].key));
+                                        console.log("  modes[4].buttons[2].key : {0}".format(json.modes[4].buttons[2].key));
+                                        console.log("  modes[4].buttons[3].key : {0}".format(json.modes[4].buttons[3].key));
+                                        console.log("  modes[4].buttons[4].key : {0}".format(json.modes[4].buttons[4].key));
 
                                         let parameters = [
                                                 { "name": "MODE", "value": json.mode, "type": "mode" },
-                                                { "name": "MODE_1:BUTTON_1:KEY", "value": json.modes[0].buttons[0].key, "type": "key" },
-                                                { "name": "MODE_1:BUTTON_2:KEY", "value": json.modes[0].buttons[1].key, "type": "key" },
-                                                { "name": "MODE_1:BUTTON_3:KEY", "value": json.modes[0].buttons[2].key, "type": "key" },
-                                                { "name": "MODE_1:BUTTON_4:KEY", "value": json.modes[0].buttons[3].key, "type": "key" },
-                                                { "name": "MODE_1:BUTTON_5:KEY", "value": json.modes[0].buttons[4].key, "type": "key" },
-                                                { "name": "MODE_2:BUTTON_1:KEY", "value": json.modes[1].buttons[0].key, "type": "key" },
-                                                { "name": "MODE_2:BUTTON_2:KEY", "value": json.modes[1].buttons[1].key, "type": "key" },
-                                                { "name": "MODE_2:BUTTON_3:KEY", "value": json.modes[1].buttons[2].key, "type": "key" },
-                                                { "name": "MODE_2:BUTTON_4:KEY", "value": json.modes[1].buttons[3].key, "type": "key" },
-                                                { "name": "MODE_2:BUTTON_5:KEY", "value": json.modes[1].buttons[4].key, "type": "key" },
-                                                { "name": "MODE_3:BUTTON_1:KEY", "value": json.modes[2].buttons[0].key, "type": "key" },
-                                                { "name": "MODE_3:BUTTON_2:KEY", "value": json.modes[2].buttons[1].key, "type": "key" },
-                                                { "name": "MODE_3:BUTTON_3:KEY", "value": json.modes[2].buttons[2].key, "type": "key" },
-                                                { "name": "MODE_3:BUTTON_4:KEY", "value": json.modes[2].buttons[3].key, "type": "key" },
-                                                { "name": "MODE_3:BUTTON_5:KEY", "value": json.modes[2].buttons[4].key, "type": "key" },
-                                                { "name": "MODE_4:BUTTON_1:KEY", "value": json.modes[3].buttons[0].key, "type": "key" },
-                                                { "name": "MODE_4:BUTTON_2:KEY", "value": json.modes[3].buttons[1].key, "type": "key" },
-                                                { "name": "MODE_4:BUTTON_3:KEY", "value": json.modes[3].buttons[2].key, "type": "key" },
-                                                { "name": "MODE_4:BUTTON_4:KEY", "value": json.modes[3].buttons[3].key, "type": "key" },
-                                                { "name": "MODE_4:BUTTON_5:KEY", "value": json.modes[3].buttons[4].key, "type": "key" },
-                                                { "name": "MODE_5:BUTTON_1:KEY", "value": json.modes[4].buttons[0].key, "type": "key" },
-                                                { "name": "MODE_5:BUTTON_2:KEY", "value": json.modes[4].buttons[1].key, "type": "key" },
-                                                { "name": "MODE_5:BUTTON_3:KEY", "value": json.modes[4].buttons[2].key, "type": "key" },
-                                                { "name": "MODE_5:BUTTON_4:KEY", "value": json.modes[4].buttons[3].key, "type": "key" },
-                                                { "name": "MODE_5:BUTTON_5:KEY", "value": json.modes[4].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_1", "value": null, "type": "title" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_1", "value": json.modes[0].buttons[0].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_2", "value": json.modes[0].buttons[1].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_3", "value": json.modes[0].buttons[2].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_4", "value": json.modes[0].buttons[3].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_5", "value": json.modes[0].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_2", "value": null, "type": "title" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_1", "value": json.modes[1].buttons[0].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_2", "value": json.modes[1].buttons[1].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_3", "value": json.modes[1].buttons[2].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_4", "value": json.modes[1].buttons[3].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_5", "value": json.modes[1].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_3", "value": null, "type": "title" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_1", "value": json.modes[2].buttons[0].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_2", "value": json.modes[2].buttons[1].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_3", "value": json.modes[2].buttons[2].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_4", "value": json.modes[2].buttons[3].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_5", "value": json.modes[2].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_4", "value": null, "type": "title" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_1", "value": json.modes[3].buttons[0].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_2", "value": json.modes[3].buttons[1].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_3", "value": json.modes[3].buttons[2].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_4", "value": json.modes[3].buttons[3].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_5", "value": json.modes[3].buttons[4].key, "type": "key" },
+                                                { "name": "MODE_5", "value": null, "type": "title" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_1", "value": json.modes[4].buttons[0].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_2", "value": json.modes[4].buttons[1].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_3", "value": json.modes[4].buttons[2].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_4", "value": json.modes[4].buttons[3].key, "type": "key" },
+                                                { "name": "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BUTTON_5", "value": json.modes[4].buttons[4].key, "type": "key" },
                                         ];
 
                                         h  = ``;
@@ -338,6 +343,8 @@
                                                         h += `<td><input id="elementSettings${n}" type="text" class="form-control" value="${v}""></td>`;
                                                 } else if (t == "integer") {
                                                         h += `<td><input id="elementSettings${n}" type="text" oninput="this.value=this.value.replace(/[^0-9]/g,'');" class="form-control" value="${v}""></td>`;
+                                                } else if (t == "title") {
+                                                        h += `<td></td>`;
                                                 } else {
                                                         h += `<td>${v}</td>`;
                                                 }
