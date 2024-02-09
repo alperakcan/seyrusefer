@@ -542,6 +542,10 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 if (buttons & SEYRUSEFER_PLATFORM_BUTTON_5) {
                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_5);
                 }
+
+                if (seyrusefer->buttons == (SEYRUSEFER_PLATFORM_BUTTON_1 | SEYRUSEFER_PLATFORM_BUTTON_2)) {
+                        seyrusefer_errorf("mode select");
+                }
         }
 
         return 0;
