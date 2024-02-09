@@ -19,7 +19,7 @@
                 }
 
                 function init () {
-                        let apiUrl                              = `http://${window.location.hostname}:${window.location.port}`;
+                        let apiUrl                              = `http://${window.location.hostname}:${window.location.port}/api`;
                         let apiSettingsGet                      = "/settings/get";
                         let apiSettingsSet                      = "/settings/set";
                         let apiTimeout                          = 10 * 1000;
@@ -68,15 +68,12 @@
                                 const controller = new AbortController();
                                 const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
                                 fetch(`${apiUrl}${apiSettingsGet}`, {
-                                        method: 'POST',
+                                        method: 'GET',
                                         signal: controller.signal,
                                         credentials: 'omit',
                                         headers: {
-                                                'Accept': 'application/json',
-                                                'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({
-                                        }),
+                                                'Accept': 'application/json'
+                                        }
                                 }).then(res => {
                                         if (res.ok == true && res.status === 200) {
                                                 return res.json();
