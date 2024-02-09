@@ -11,15 +11,17 @@
 #define SEYRUSEFER_DEBUG_TAG "httpd"
 #include "debug.h"
 #include "platform.h"
+#include "config.h"
 #include "httpd.h"
 
 struct seyrusefer_httpd {
         int port;
         int enabled;
+        struct seyrusefer_config *config;
         httpd_handle_t server;
 };
 
-static esp_err_t api_v1_hello (httpd_req_t *req)
+static esp_err_t api_hello (httpd_req_t *req)
 {
         char *resp;
         struct seyrusefer_httpd *httpd = req->user_ctx;
@@ -35,7 +37,7 @@ static esp_err_t api_v1_hello (httpd_req_t *req)
         return ESP_OK;
 }
 
-static esp_err_t api_v1_system_restart (httpd_req_t *req)
+static esp_err_t api_system_restart (httpd_req_t *req)
 {
         struct seyrusefer_httpd *httpd = req->user_ctx;
 
@@ -49,19 +51,174 @@ static esp_err_t api_v1_system_restart (httpd_req_t *req)
         return ESP_OK;
 }
 
+static esp_err_t api_settings_get (httpd_req_t *req)
+{
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        httpd_resp_send(req, "{}", 2);
+
+        return ESP_OK;
+}
+
+static esp_err_t www_index_html (httpd_req_t *req)
+{
+        extern const unsigned char www_index_html_start[] asm("_binary_index_html_start");
+        extern const unsigned char www_index_html_end[]   asm("_binary_index_html_end");
+        const size_t www_index_html_size = (www_index_html_end - www_index_html_start);
+
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        httpd_resp_set_type(req, "text/html");
+        httpd_resp_send(req, (const char *) www_index_html_start, www_index_html_size);
+
+        return ESP_OK;
+}
+
+static esp_err_t www_bootstrap_icons_css (httpd_req_t *req)
+{
+        extern const unsigned char www_bootstrap_icons_css_start[] asm("_binary_bootstrap_icons_css_start");
+        extern const unsigned char www_bootstrap_icons_css_end[]   asm("_binary_bootstrap_icons_css_end");
+        const size_t www_bootstrap_icons_css_size = (www_bootstrap_icons_css_end - www_bootstrap_icons_css_start);
+
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        httpd_resp_set_type(req, "text/css");
+        httpd_resp_send(req, (const char *) www_bootstrap_icons_css_start, www_bootstrap_icons_css_size);
+
+        return ESP_OK;
+}
+
+static esp_err_t www_bootstrap_min_css (httpd_req_t *req)
+{
+        extern const unsigned char www_bootstrap_min_css_start[] asm("_binary_bootstrap_min_css_start");
+        extern const unsigned char www_bootstrap_min_css_end[]   asm("_binary_bootstrap_min_css_end");
+        const size_t www_bootstrap_min_css_size = (www_bootstrap_min_css_end - www_bootstrap_min_css_start);
+
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        httpd_resp_set_type(req, "text/css");
+        httpd_resp_send(req, (const char *) www_bootstrap_min_css_start, www_bootstrap_min_css_size);
+
+        return ESP_OK;
+}
+
+static esp_err_t www_bootstrap_min_js (httpd_req_t *req)
+{
+        extern const unsigned char www_bootstrap_min_js_start[] asm("_binary_bootstrap_min_js_start");
+        extern const unsigned char www_bootstrap_min_js_end[]   asm("_binary_bootstrap_min_js_end");
+        const size_t www_bootstrap_min_js_size = (www_bootstrap_min_js_end - www_bootstrap_min_js_start);
+
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        httpd_resp_set_type(req, "text/javascript");
+        httpd_resp_send(req, (const char *) www_bootstrap_min_js_start, www_bootstrap_min_js_size);
+
+        return ESP_OK;
+}
+
+static esp_err_t www_jquery_min_js (httpd_req_t *req)
+{
+        extern const unsigned char www_jquery_min_js_start[] asm("_binary_jquery_min_js_start");
+        extern const unsigned char www_jquery_min_js_end[]   asm("_binary_jquery_min_js_end");
+        const size_t www_jquery_min_js_size = (www_jquery_min_js_end - www_jquery_min_js_start);
+
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        httpd_resp_set_type(req, "text/javascript");
+        httpd_resp_send(req, (const char *) www_jquery_min_js_start, www_jquery_min_js_size);
+
+        return ESP_OK;
+}
+
+static esp_err_t www_popper_min_js (httpd_req_t *req)
+{
+        extern const unsigned char www_popper_min_js_start[] asm("_binary_popper_min_js_start");
+        extern const unsigned char www_popper_min_js_end[]   asm("_binary_popper_min_js_end");
+        const size_t www_popper_min_js_size = (www_popper_min_js_end - www_popper_min_js_start);
+
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        httpd_resp_set_type(req, "text/javascript");
+        httpd_resp_send(req, (const char *) www_popper_min_js_start, www_popper_min_js_size);
+
+        return ESP_OK;
+}
+
 static httpd_uri_t *apis[] = {
         &(httpd_uri_t) {
-                .uri      = "/api/v1/hello",
+                .uri      = "/api/hello",
                 .method   = HTTP_GET,
-                .handler  = api_v1_hello,
+                .handler  = api_hello,
                 .user_ctx = NULL
         },
         &(httpd_uri_t) {
-                .uri      = "/api/v1/system/restart",
+                .uri      = "/api/system/restart",
                 .method   = HTTP_GET,
-                .handler  = api_v1_system_restart,
+                .handler  = api_system_restart,
                 .user_ctx = NULL
-        }
+        },
+        &(httpd_uri_t) {
+                .uri      = "/api/settings/get",
+                .method   = HTTP_GET,
+                .handler  = api_settings_get,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/",
+                .method   = HTTP_GET,
+                .handler  = www_index_html,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/index.html",
+                .method   = HTTP_GET,
+                .handler  = www_index_html,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/bootstrap-icons.css",
+                .method   = HTTP_GET,
+                .handler  = www_bootstrap_icons_css,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/bootstrap.min.css",
+                .method   = HTTP_GET,
+                .handler  = www_bootstrap_min_css,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/bootstrap.min.js",
+                .method   = HTTP_GET,
+                .handler  = www_bootstrap_min_js,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/jquery.min.js",
+                .method   = HTTP_GET,
+                .handler  = www_jquery_min_js,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/popper.min.js",
+                .method   = HTTP_GET,
+                .handler  = www_popper_min_js,
+                .user_ctx = NULL
+        },
 };
 
 int seyrusefer_httpd_init_options_default (struct seyrusefer_httpd_init_options *options)
@@ -87,6 +244,10 @@ struct seyrusefer_httpd * seyrusefer_httpd_create (struct seyrusefer_httpd_init_
                 seyrusefer_errorf("options is invalid");
                 goto bail;
         }
+        if (options->config == NULL) {
+                seyrusefer_errorf("options is invalid");
+                goto bail;
+        }
 
         httpd = malloc(sizeof(struct seyrusefer_httpd));
         if (httpd == NULL) {
@@ -96,6 +257,7 @@ struct seyrusefer_httpd * seyrusefer_httpd_create (struct seyrusefer_httpd_init_
         memset(httpd, 0, sizeof(struct seyrusefer_httpd));
 
         httpd->port   = options->port;
+        httpd->config = options->config;
 
         for (i = 0; i < sizeof(apis) / sizeof(apis[0]); i++) {
                 apis[i]->user_ctx = httpd;

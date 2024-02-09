@@ -14,6 +14,15 @@ idf_component_register(
                 "timer.c"
                 "uuid.c"
                 "wifi.c"
+
         INCLUDE_DIRS
                 "."
+
+        EMBED_FILES
+                "www/index.html"
+                "www/bootstrap-icons.css"
+                "www/bootstrap.min.css"
+                "www/bootstrap.min.js"
+                "www/jquery.min.js"
+                "www/popper.min.js"
 )

@@ -5,6 +5,7 @@ struct seyrusefer_httpd;
 struct seyrusefer_httpd_init_options {
         int port;
         int enabled;
+        struct seyrusefer_config *config;
 };
 
 int seyrusefer_httpd_init_options_default (struct seyrusefer_httpd_init_options *options);

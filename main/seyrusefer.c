@@ -17,6 +17,7 @@
 #include "hid.h"
 #include "wifi.h"
 #include "httpd.h"
+#include "settings.h"
 #include "seyrusefer.h"
 
 #define SEYRUSEFER_VERSION                              "seyrusefer-0.0.0.bin"
@@ -34,49 +35,6 @@ enum {
 #define SEYRUSEFER_STATE_MODE_SELECT                    SEYRUSEFER_STATE_MODE_SELECT
 #define SEYRUSEFER_STATE_WIFI_SETUP                     SEYRUSEFER_STATE_WIFI_SETUP
 #define SEYRUSEFER_STATE_ERROR                          SEYRUSEFER_STATE_ERROR
-};
-
-enum {
-        SEYRUSEFER_LAYOUT_BUTTON_1                      = 0,
-        SEYRUSEFER_LAYOUT_BUTTON_2                      = 1,
-        SEYRUSEFER_LAYOUT_BUTTON_3                      = 2,
-        SEYRUSEFER_LAYOUT_BUTTON_4                      = 3,
-        SEYRUSEFER_LAYOUT_BUTTON_5                      = 4,
-        SEYRUSEFER_LAYOUT_BUTTON_COUNT                  = 5
-#define SEYRUSEFER_LAYOUT_BUTTON_1                      SEYRUSEFER_LAYOUT_BUTTON_1
-#define SEYRUSEFER_LAYOUT_BUTTON_2                      SEYRUSEFER_LAYOUT_BUTTON_2
-#define SEYRUSEFER_LAYOUT_BUTTON_3                      SEYRUSEFER_LAYOUT_BUTTON_3
-#define SEYRUSEFER_LAYOUT_BUTTON_4                      SEYRUSEFER_LAYOUT_BUTTON_4
-#define SEYRUSEFER_LAYOUT_BUTTON_5                      SEYRUSEFER_LAYOUT_BUTTON_5
-#define SEYRUSEFER_LAYOUT_BUTTON_COUNT                  SEYRUSEFER_LAYOUT_BUTTON_COUNT
-};
-
-enum {
-        SEYRUSEFER_LAYOUT_MODE_1                        = 0,
-        SEYRUSEFER_LAYOUT_MODE_2                        = 1,
-        SEYRUSEFER_LAYOUT_MODE_3                        = 2,
-        SEYRUSEFER_LAYOUT_MODE_4                        = 3,
-        SEYRUSEFER_LAYOUT_MODE_5                        = 4,
-        SEYRUSEFER_LAYOUT_MODE_COUNT                    = 5
-#define SEYRUSEFER_LAYOUT_MODE_1                        SEYRUSEFER_LAYOUT_MODE_1
-#define SEYRUSEFER_LAYOUT_MODE_2                        SEYRUSEFER_LAYOUT_MODE_2
-#define SEYRUSEFER_LAYOUT_MODE_3                        SEYRUSEFER_LAYOUT_MODE_3
-#define SEYRUSEFER_LAYOUT_MODE_4                        SEYRUSEFER_LAYOUT_MODE_4
-#define SEYRUSEFER_LAYOUT_MODE_5                        SEYRUSEFER_LAYOUT_MODE_5
-#define SEYRUSEFER_LAYOUT_MODE_COUNT                    SEYRUSEFER_LAYOUT_MODE_COUNT
-};
-
-struct seyrusefer_layout_button_config {
-        int key;
-};
-
-struct seyrusefer_layout_mode_config {
-        struct seyrusefer_layout_button_config buttons[SEYRUSEFER_LAYOUT_BUTTON_COUNT];
-};
-
-struct seyrusefer_layout_config {
-        int mode;
-        struct seyrusefer_layout_mode_config modes[SEYRUSEFER_LAYOUT_MODE_COUNT];
 };
 
 struct seyrusefer {
@@ -123,7 +81,7 @@ struct seyrusefer {
 
         struct seyrusefer_alarm *process_alarm;
 
-        struct seyrusefer_layout_config layout_config;
+        struct seyrusefer_settings settings;
 };
 
 static const char * seyrusefer_state_string (int state);
@@ -430,44 +388,44 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->wifi_setup_led_brightness_tsms      = 0;
         seyrusefer->wifi_setup_led_brightness           = seyrusefer->wifi_setup_led_brightness_low;
 
-        seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_1;
-        for (i = 0; i < SEYRUSEFER_LAYOUT_MODE_COUNT; i++) {
-                for (j = 0; j < SEYRUSEFER_LAYOUT_BUTTON_COUNT; j++) {
-                        seyrusefer->layout_config.modes[i].buttons[j].key = 0;
+        seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_1;
+        for (i = 0; i < SEYRUSEFER_SETTINGS_MODE_COUNT; i++) {
+                for (j = 0; j < SEYRUSEFER_SETTINGS_BUTTON_COUNT; j++) {
+                        seyrusefer->settings.modes[i].buttons[j].key = 0;
                 }
         }
 
-        seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_1;
+        seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_1;
 
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_KEY_C;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_KEY_R;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_KEY_D;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_KEY_C;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_KEY_R;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key = SEYRUSEFER_HID_KEY_D;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
 
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
 
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_CONSUMER_PLAY_PAUSE;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_3].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_CONSUMER_PLAY_PAUSE;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_3].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_3].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key = SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_3].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_3].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
 
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_KEY_RESERVED;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_KEY_RESERVED;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_KEY_RESERVED;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_KEY_RESERVED;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_4].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_4].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_4].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_4].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_4].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key = SEYRUSEFER_HID_KEY_RESERVED;
 
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_KEY_RESERVED;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_KEY_RESERVED;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_KEY_RESERVED;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_KEY_RESERVED;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_5].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_5].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_5].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_5].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_5].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key = SEYRUSEFER_HID_KEY_RESERVED;
 
         seyrusefer_infof("creating config");
         seyrusefer_infof("  path     : %s", "config");
@@ -542,6 +500,7 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         }
         seyrusefer_httpd_init_options.port    = 80;
         seyrusefer_httpd_init_options.enabled = 0;
+        seyrusefer_httpd_init_options.config  = seyrusefer->config;
         seyrusefer->httpd = seyrusefer_httpd_create(&seyrusefer_httpd_init_options);
         if (seyrusefer->httpd == NULL) {
                 seyrusefer_errorf("can not create httpd");
@@ -696,40 +655,40 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
 
 #if 0
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_1) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_1);
                                 }
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_2) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_2);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_2);
                                 }
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_3) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_3);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_3);
                                 }
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_4) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_4);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_4);
                                 }
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_5) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_5);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_5);
                                 }
 #else
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_1) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, 1);
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, 0);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key, 0);
                                 }
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_2) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key, 1);
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key, 0);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key, 0);
                                 }
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_3) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key, 1);
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key, 0);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key, 0);
                                 }
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_4) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key, 1);
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key, 0);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key, 0);
                                 }
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_5) {
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, 1);
-                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, 0);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key, 0);
                                 }
 #endif
                         }
@@ -778,23 +737,23 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                     seyrusefer->pbuttons == 0) {
                         if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_1) {
                                 seyrusefer_debugf("mode-1");
-                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_1;
+                                seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_1;
                                 seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
                         } else if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_2) {
                                 seyrusefer_debugf("mode-2");
-                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_2;
+                                seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_2;
                                 seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
                         } else if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_3) {
                                 seyrusefer_debugf("mode-3");
-                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_3;
+                                seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_3;
                                 seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
                         } else if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_4) {
                                 seyrusefer_debugf("mode-4");
-                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_4;
+                                seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_4;
                                 seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
                         } else if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_5) {
                                 seyrusefer_debugf("mode-5");
-                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_5;
+                                seyrusefer->settings.mode = SEYRUSEFER_SETTINGS_MODE_5;
                                 seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
                         }
                 }
