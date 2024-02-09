@@ -412,7 +412,7 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->connect_wait_led_brightness_tsms    = 0;
         seyrusefer->connect_wait_led_brightness         = seyrusefer->connect_wait_led_brightness_low;
 
-        seyrusefer->mode_select_buttons_dur             = 5000;
+        seyrusefer->mode_select_buttons_dur             = 2500;
         seyrusefer->mode_select_buttons_tsms            = 0;
 
         seyrusefer->mode_select_led_brightness_low      = 2;
@@ -421,7 +421,7 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->mode_select_led_brightness_tsms     = 0;
         seyrusefer->mode_select_led_brightness          = seyrusefer->mode_select_led_brightness_low;
 
-        seyrusefer->wifi_setup_buttons_dur              = 5000;
+        seyrusefer->wifi_setup_buttons_dur              = 2500;
         seyrusefer->wifi_setup_buttons_tsms             = 0;
 
         seyrusefer->wifi_setup_led_brightness_low       = 2;
@@ -694,6 +694,7 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                         if (seyrusefer->buttons != seyrusefer->pbuttons) {
                                 seyrusefer_platform_set_led(seyrusefer->buttons ? 50 : 0);
 
+#if 0
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_1) {
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_1);
                                 }
@@ -709,6 +710,28 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_5) {
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_5);
                                 }
+#else
+                                if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_1) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, 0);
+                                }
+                                if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_2) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key, 0);
+                                }
+                                if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_3) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key, 0);
+                                }
+                                if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_4) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key, 0);
+                                }
+                                if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_5) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, 0);
+                                }
+#endif
                         }
                 } else {
                         seyrusefer_errorf("seyrusefer_hid_connected failed, rc: %d", rc);
