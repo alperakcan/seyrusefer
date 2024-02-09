@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Seyrusefer</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="bootstrap-icons.css">
+        <script src="jquery.min.js"></script>
+        <script src="popper.min.js" crossorigin="anonymous"></script>
+        <script src="bootstrap.min.js" crossorigin="anonymous"></script>
+        <script>
+                String.prototype.format = function() {
+                        let a = this;
+                        for (let k in arguments) {
+                                a = a.replace("{" + k + "}", arguments[k])
+                        }
+                        return a
+                }
+
+                function init () {
+                        let apiUrl                              = `http://${window.location.hostname}:${window.location.port}`;
+                        let apiSettingsGet                      = "/settings/get";
+                        let apiSettingsSet                      = "/settings/set";
+                        let apiTimeout                          = 10 * 1000;
+
+                        let elementSeyrusefersLink              = document.getElementById("elementSeyrusefersLink");
+                        let elementSeyruseferLink               = document.getElementById("elementSeyruseferLink");
+                        let elementCommandSeperator             = document.getElementById("elementCommandSeperator");
+                        let elementCommandName                  = document.getElementById("elementCommandName");
+                        let elementSeyruseferId                 = document.getElementById("elementSeyruseferId");
+
+                        let elementSeyruseferDiv                = document.getElementById("elementSeyruseferDiv");
+
+                        let elementSettingsDiv                  = document.getElementById("elementSettingsDiv");
+                        let elementSettingsLink                 = document.getElementById("elementSettingsLink");
+                        let elementSettingsResultDiv            = document.getElementById("elementSettingsResultDiv");
+                        let elementSettingsSaveButton           = document.getElementById("elementSettingsSaveButton");
+
+                        elementsReset = function () {
+                                elementSeyruseferDiv.style.display      = "none";
+                                elementSettingsDiv.style.display        = "none";
+                                elementCommandSeperator.innerHTML       = "";
+                                elementCommandName.innerHTML            = "";
+
+                                elementSettingsResultDiv.innerHTML      = "";
+                        }
+
+                        elementSeyruseferLink.onclick = function () {
+                                elementsReset();
+                                elementSeyruseferDiv.style.display      = "block";
+                                elementCommandSeperator.innerHTML       = "";
+                                elementCommandName.innerHTML            = "";
+                        }
+
+                        elementSettingsLink.onclick = function () {
+                                elementsReset();
+                                elementSettingsDiv.style.display        = "block";
+                                elementSettingsSaveButton.style.display = "none";
+                                elementCommandSeperator.innerHTML       = "/";
+                                elementCommandName.innerHTML            = "Settings";
+                                elementSettingsUpdate();
+                        }
+
+                        elementSettingsUpdate = function () {
+                                elementSettingsResultDiv.innerHTML = "Fetching settings...";
+
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
+                                fetch(`${apiUrl}${apiSettingsGet}`, {
+                                        method: 'POST',
+                                        signal: controller.signal,
+                                        credentials: 'omit',
+                                        headers: {
+                                                'Accept': 'application/json',
+                                                'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                        }),
+                                }).then(res => {
+                                        if (res.ok == true && res.status === 200) {
+                                                return res.json();
+                                        } else {
+                                                console.log("api call: {0}{1} failed, res: {2}, {3}".format(apiUrl, apiSettingsGet, res.ok, res.status))
+                                                throw new Error();
+                                        }
+                                }) .then(json => {
+                                        let i;
+                                        let h;
+
+                                        console.log("{0}{1}".format(apiUrl, apiSettingsGet));
+                                        console.log("  mode                     : {0}".format(json.mode));
+                                        console.log("  modes[0].buttons[0].key  : {0}".format(json.modes[0].buttons[0].key));
+                                        console.log("  modes[0].buttons[1].key  : {0}".format(json.modes[0].buttons[1].key));
+                                        console.log("  modes[0].buttons[2].key  : {0}".format(json.modes[0].buttons[2].key));
+                                        console.log("  modes[0].buttons[3].key  : {0}".format(json.modes[0].buttons[3].key));
+                                        console.log("  modes[0].buttons[4].key  : {0}".format(json.modes[0].buttons[4].key));
+                                        console.log("  modes[1].buttons[0].key  : {0}".format(json.modes[1].buttons[0].key));
+                                        console.log("  modes[1].buttons[1].key  : {0}".format(json.modes[1].buttons[1].key));
+                                        console.log("  modes[1].buttons[2].key  : {0}".format(json.modes[1].buttons[2].key));
+                                        console.log("  modes[1].buttons[3].key  : {0}".format(json.modes[1].buttons[3].key));
+                                        console.log("  modes[1].buttons[4].key  : {0}".format(json.modes[1].buttons[4].key));
+                                        console.log("  modes[2].buttons[0].key  : {0}".format(json.modes[2].buttons[0].key));
+                                        console.log("  modes[2].buttons[1].key  : {0}".format(json.modes[2].buttons[1].key));
+                                        console.log("  modes[2].buttons[2].key  : {0}".format(json.modes[2].buttons[2].key));
+                                        console.log("  modes[2].buttons[3].key  : {0}".format(json.modes[2].buttons[3].key));
+                                        console.log("  modes[2].buttons[4].key  : {0}".format(json.modes[2].buttons[4].key));
+                                        console.log("  modes[3].buttons[0].key  : {0}".format(json.modes[3].buttons[0].key));
+                                        console.log("  modes[3].buttons[1].key  : {0}".format(json.modes[3].buttons[1].key));
+                                        console.log("  modes[3].buttons[2].key  : {0}".format(json.modes[3].buttons[2].key));
+                                        console.log("  modes[3].buttons[3].key  : {0}".format(json.modes[3].buttons[3].key));
+                                        console.log("  modes[3].buttons[4].key  : {0}".format(json.modes[3].buttons[4].key));
+                                        console.log("  modes[4].buttons[0].key  : {0}".format(json.modes[4].buttons[0].key));
+                                        console.log("  modes[4].buttons[1].key  : {0}".format(json.modes[4].buttons[1].key));
+                                        console.log("  modes[4].buttons[2].key  : {0}".format(json.modes[4].buttons[2].key));
+                                        console.log("  modes[4].buttons[3].key  : {0}".format(json.modes[4].buttons[3].key));
+                                        console.log("  modes[4].buttons[4].key  : {0}".format(json.modes[4].buttons[4].key));
+
+                                        let parameters = [
+                                                { "name": "mode", "value": json.mode, "type": integer },
+                                                { "name": "modes:1:buttons:1:key", "value": json.modes[0].buttons[0].key, "type": "string" },
+                                                { "name": "modes:1:buttons:2:key", "value": json.modes[0].buttons[1].key, "type": "string" },
+                                                { "name": "modes:1:buttons:3:key", "value": json.modes[0].buttons[2].key, "type": "string" },
+                                                { "name": "modes:1:buttons:4:key", "value": json.modes[0].buttons[3].key, "type": "string" },
+                                                { "name": "modes:1:buttons:5:key", "value": json.modes[0].buttons[4].key, "type": "string" },
+                                                { "name": "modes:2:buttons:1:key", "value": json.modes[1].buttons[0].key, "type": "string" },
+                                                { "name": "modes:2:buttons:2:key", "value": json.modes[1].buttons[1].key, "type": "string" },
+                                                { "name": "modes:2:buttons:3:key", "value": json.modes[1].buttons[2].key, "type": "string" },
+                                                { "name": "modes:2:buttons:4:key", "value": json.modes[1].buttons[3].key, "type": "string" },
+                                                { "name": "modes:2:buttons:5:key", "value": json.modes[1].buttons[4].key, "type": "string" },
+                                                { "name": "modes:3:buttons:1:key", "value": json.modes[2].buttons[0].key, "type": "string" },
+                                                { "name": "modes:3:buttons:2:key", "value": json.modes[2].buttons[1].key, "type": "string" },
+                                                { "name": "modes:3:buttons:3:key", "value": json.modes[2].buttons[2].key, "type": "string" },
+                                                { "name": "modes:3:buttons:4:key", "value": json.modes[2].buttons[3].key, "type": "string" },
+                                                { "name": "modes:3:buttons:5:key", "value": json.modes[2].buttons[4].key, "type": "string" },
+                                                { "name": "modes:4:buttons:1:key", "value": json.modes[3].buttons[0].key, "type": "string" },
+                                                { "name": "modes:4:buttons:2:key", "value": json.modes[3].buttons[1].key, "type": "string" },
+                                                { "name": "modes:4:buttons:3:key", "value": json.modes[3].buttons[2].key, "type": "string" },
+                                                { "name": "modes:4:buttons:4:key", "value": json.modes[3].buttons[3].key, "type": "string" },
+                                                { "name": "modes:4:buttons:5:key", "value": json.modes[3].buttons[4].key, "type": "string" },
+                                                { "name": "modes:5:buttons:1:key", "value": json.modes[4].buttons[0].key, "type": "string" },
+                                                { "name": "modes:5:buttons:2:key", "value": json.modes[4].buttons[1].key, "type": "string" },
+                                                { "name": "modes:5:buttons:3:key", "value": json.modes[4].buttons[2].key, "type": "string" },
+                                                { "name": "modes:5:buttons:4:key", "value": json.modes[4].buttons[3].key, "type": "string" },
+                                                { "name": "modes:5:buttons:5:key", "value": json.modes[4].buttons[4].key, "type": "string" },
+                                        ];
+
+                                        h  = ``;
+                                        h += `<table class="table">`;
+
+                                        for (i = 0; i < parameters.length; i++) {
+                                                let n = parameters[i].name != null ? parameters[i].name : "";
+                                                let v = parameters[i].value != null ? parameters[i].value : "";
+                                                let t = parameters[i].type != null ? parameters[i].type : "";
+                                                h += `<tr>`;
+                                                h += `<td></td>`;
+                                                h += `<td>${n}</td>`;
+                                                if (t == "string") {
+                                                        h += `<td><input id="elementSettings${n}" type="text" class="form-control" value="${v}""></td>`;
+                                                } else if (t == "integer") {
+                                                        h += `<td><input id="elementSettings${n}" type="text" oninput="this.value=this.value.replace(/[^0-9]/g,'');" class="form-control" value="${v}""></td>`;
+                                                } else {
+                                                        h += `<td>${v}</td>`;
+                                                }
+                                                h += `</tr>`;
+                                        }
+
+                                        h += `</table>`;
+
+                                        elementSettingsResultDiv.innerHTML = h;
+                                }) .catch(e => {
+                                        console.error(e);
+
+                                        elementSettingsResultDiv.innerHTML = "Can not get settings, try again later.";
+                                });
+                        }
+
+                        elementSettingsSaveButton.onclick = function () {
+                                elementSettingsResultDiv.innerHTML = "Setting device...";
+
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
+                                fetch(`${apiUrl}${apiSettingsSet}`, {
+                                        method: 'POST',
+                                        signal: controller.signal,
+                                        credentials: 'omit',
+                                        headers: {
+                                                'Accept': 'application/json',
+                                                'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                        }),
+                                }).then(res => {
+                                        if (res.ok == true && res.status === 200) {
+                                                return res.json();
+                                        } else {
+                                                console.log("api call: {0}{1} failed, res: {2}, {3}".format(apiUrl, apiSettingsSet, res.ok, res.status))
+                                                throw new Error();
+                                        }
+                                }) .then(json => {
+                                        elementSetInformationUpdate();
+                                }) .catch(e => {
+                                        console.error(e);
+
+                                        elementSettingsResultDiv.innerHTML = "Can not set settings, try again later.";
+                                });
+                        }
+
+                        elementsReset();
+                        elementSeyruseferDiv.style.display = "block";
+
+                        elementSeyruseferId.innerHTML = "v0.0.0";
+                }
+        </script>
+</head>
+<body onload="init()">
+        <div class="container">
+                <nav class="navbar navbar-expand-sm bg-light navbar-light">
+                        <div class="container-fluid">
+                                <a id="elementSeyruseferLink" class="navbar-brand" href="#"><h4 class="mb-1">Seyrusefer</h4></a>
+                                <a id="elementCommandSeperator" class="navbar-brand"></a>
+                                <a id="elementCommandName" class="navbar-brand"></a>
+                                <div class="collapse navbar-collapse" id="mynavbar">
+                                        <div class="me-auto">
+                                        </div>
+                                        <div class="d-flex">
+                                                <a id="elementSeyruseferId" class="nav-link"></a>
+                                        </div>
+                                </div>
+                        </div>
+                </nav>
+                <div id="elementSeyruseferDiv">
+                        <p>
+                                <div class="list-group">
+                                        <a id="elementSettingsLink" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                        Settings
+                                                </div>
+                                        </a>
+                                </div>
+                                <div class="list-group">
+                                        <a id="elementAboutsLink" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                        About
+                                                </div>
+                                        </a>
+                                </div>
+                        </p>
+                </div>
+                <div id="elementSettingsDiv">
+                        <p>
+                                <div id="elementSettingsResultDiv">
+
+                                </div>
+                        </p>
+                        <p>
+                                <button id="elementSettingsSaveButton" type="button" class="w-100 btn btn-light">Save</button>
+                        </p>
+                </div>
+                <div id="elementAboutDiv">
+                        <p>
+                                <div id="elementAboutResultDiv">
+
+                                </div>
+                        </p>
+                </div>
+        </div>
+</body>
+</html>
