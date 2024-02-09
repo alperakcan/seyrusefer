@@ -15,7 +15,6 @@
 #include "config.h"
 #include "timer.h"
 #include "hid.h"
-#include "hid_dev.h"
 #include "wifi.h"
 #include "httpd.h"
 #include "seyrusefer.h"
@@ -26,12 +25,14 @@ enum {
         SEYRUSEFER_STATE_NONE,
         SEYRUSEFER_STATE_INIT,
         SEYRUSEFER_STATE_RUNNING,
-        SEYRUSEFER_STATE_MODE_CHANGE,
+        SEYRUSEFER_STATE_MODE_SELECT,
+        SEYRUSEFER_STATE_WIFI_SETUP,
         SEYRUSEFER_STATE_ERROR
 #define SEYRUSEFER_STATE_NONE                           SEYRUSEFER_STATE_NONE
 #define SEYRUSEFER_STATE_INIT                           SEYRUSEFER_STATE_INIT
 #define SEYRUSEFER_STATE_RUNNING                        SEYRUSEFER_STATE_RUNNING
-#define SEYRUSEFER_STATE_MODE_CHANGE                    SEYRUSEFER_STATE_MODE_CHANGE
+#define SEYRUSEFER_STATE_MODE_SELECT                    SEYRUSEFER_STATE_MODE_SELECT
+#define SEYRUSEFER_STATE_WIFI_SETUP                     SEYRUSEFER_STATE_WIFI_SETUP
 #define SEYRUSEFER_STATE_ERROR                          SEYRUSEFER_STATE_ERROR
 };
 
@@ -89,12 +90,30 @@ struct seyrusefer {
         int connected;
         int pconnected;
 
-        int led_brightness;
-        int led_brightness_low;
-        int led_brightness_high;
-        int led_brightness_op;
-        int led_brightness_dur;
-        int led_brightness_tick;
+        int connect_wait_led_brightness;
+        int connect_wait_led_brightness_low;
+        int connect_wait_led_brightness_high;
+        int connect_wait_led_brightness_op;
+        int connect_wait_led_brightness_dur;
+        int64_t connect_wait_led_brightness_tsms;
+
+        int64_t mode_select_buttons_dur;
+        int64_t mode_select_buttons_tsms;
+
+        int mode_select_led_brightness;
+        int mode_select_led_brightness_low;
+        int mode_select_led_brightness_high;
+        int mode_select_led_brightness_dur;
+        int64_t mode_select_led_brightness_tsms;
+
+        int64_t wifi_setup_buttons_dur;
+        int64_t wifi_setup_buttons_tsms;
+
+        int wifi_setup_led_brightness;
+        int wifi_setup_led_brightness_low;
+        int wifi_setup_led_brightness_high;
+        int wifi_setup_led_brightness_dur;
+        int64_t wifi_setup_led_brightness_tsms;
 
         struct seyrusefer_config *config;
         struct seyrusefer_timer *timer;
@@ -123,6 +142,8 @@ static const char * seyrusefer_state_string (int state)
         if (state == SEYRUSEFER_STATE_NONE)             return "none";
         if (state == SEYRUSEFER_STATE_INIT)             return "init";
         if (state == SEYRUSEFER_STATE_RUNNING)          return "running";
+        if (state == SEYRUSEFER_STATE_MODE_SELECT)      return "mode-select";
+        if (state == SEYRUSEFER_STATE_WIFI_SETUP)       return "wifi-setup";
         if (state == SEYRUSEFER_STATE_ERROR)            return "error";
         return "unknown";
 }
@@ -130,21 +151,15 @@ static const char * seyrusefer_state_string (int state)
 static int seyrusefer_set_state_init_actual (struct seyrusefer *seyrusefer)
 {
         int rc;
-        seyrusefer_infof("starting timer");
+        seyrusefer_platform_set_led(0);
         rc = seyrusefer_timer_start(seyrusefer->timer);
         if (rc < 0) {
                 seyrusefer_errorf("can not start timer");
                 goto bail;
         }
-        seyrusefer_infof("enabling process alarm");
         rc = seyrusefer_alarm_set_enabled(seyrusefer->process_alarm, 1);
         if (rc < 0) {
                 seyrusefer_errorf("can not enable process_alarm");
-                goto bail;
-        }
-        rc = seyrusefer_hid_start(seyrusefer->hid);
-        if (rc < 0) {
-                seyrusefer_errorf("can not start hid device");
                 goto bail;
         }
         rc = seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
@@ -158,8 +173,89 @@ bail:   return -1;
 
 static int seyrusefer_set_state_running_actual (struct seyrusefer *seyrusefer)
 {
-        (void) seyrusefer;
+        int rc;
+
+        seyrusefer->connected  = 0;
+        seyrusefer->pconnected = -1;
+
+        seyrusefer->mode_select_buttons_tsms = 0;
+        seyrusefer->wifi_setup_buttons_tsms  = 0;
+
+        seyrusefer_platform_set_led(0);
+
+        rc = seyrusefer_hid_start(seyrusefer->hid);
+        if (rc < 0) {
+                seyrusefer_errorf("can not start hid device");
+                goto bail;
+        }
+        rc = seyrusefer_wifi_stop(seyrusefer->wifi);
+        if (rc < 0) {
+                seyrusefer_errorf("can not stop wifi");
+                goto bail;
+        }
+        rc = seyrusefer_httpd_stop(seyrusefer->httpd);
+        if (rc < 0) {
+                seyrusefer_errorf("can not stop httpd");
+                goto bail;
+        }
         return 0;
+bail:   return -1;
+}
+
+static int seyrusefer_set_state_mode_select_actual (struct seyrusefer *seyrusefer)
+{
+        int rc;
+
+        seyrusefer->connect_wait_led_brightness_tsms    = 0;
+
+        seyrusefer->mode_select_buttons_tsms            = 0;
+        seyrusefer->mode_select_led_brightness_tsms     = 0;
+
+        seyrusefer->wifi_setup_buttons_tsms             = 0;
+        seyrusefer->wifi_setup_led_brightness_tsms      = 0;
+
+        seyrusefer_platform_set_led(0);
+
+        rc = seyrusefer_hid_start(seyrusefer->hid);
+        if (rc < 0) {
+                seyrusefer_errorf("can not start hid device");
+                goto bail;
+        }
+        rc = seyrusefer_wifi_stop(seyrusefer->wifi);
+        if (rc < 0) {
+                seyrusefer_errorf("can not stop wifi");
+                goto bail;
+        }
+        rc = seyrusefer_httpd_stop(seyrusefer->httpd);
+        if (rc < 0) {
+                seyrusefer_errorf("can not stop httpd");
+                goto bail;
+        }
+        return 0;
+bail:   return -1;
+}
+
+static int seyrusefer_set_state_wifi_setup_actual (struct seyrusefer *seyrusefer)
+{
+        int rc;
+        seyrusefer_platform_set_led(0);
+        rc = seyrusefer_hid_start(seyrusefer->hid);
+        if (rc < 0) {
+                seyrusefer_errorf("can not start hid device");
+                goto bail;
+        }
+        rc = seyrusefer_wifi_start(seyrusefer->wifi);
+        if (rc < 0) {
+                seyrusefer_errorf("can not start wifi");
+                goto bail;
+        }
+        rc = seyrusefer_httpd_start(seyrusefer->httpd);
+        if (rc < 0) {
+                seyrusefer_errorf("can not start httpd");
+                goto bail;
+        }
+        return 0;
+bail:   return -1;
 }
 
 static int seyrusefer_set_state_error_actual (struct seyrusefer *seyrusefer)
@@ -197,6 +293,18 @@ static int seyrusefer_set_state (struct seyrusefer *seyrusefer, int state)
                 rc = seyrusefer_set_state_running_actual(seyrusefer);
                 if (rc != 0) {
                         seyrusefer_errorf("seyrusefer_set_state_running_actual failed");
+                        goto bail;
+                }
+        } else if (seyrusefer->state == SEYRUSEFER_STATE_MODE_SELECT) {
+                rc = seyrusefer_set_state_mode_select_actual(seyrusefer);
+                if (rc != 0) {
+                        seyrusefer_errorf("seyrusefer_set_state_mode_select_actual failed");
+                        goto bail;
+                }
+        } else if (seyrusefer->state == SEYRUSEFER_STATE_WIFI_SETUP) {
+                rc = seyrusefer_set_state_wifi_setup_actual(seyrusefer);
+                if (rc != 0) {
+                        seyrusefer_errorf("seyrusefer_set_state_wifi_setup_actual failed");
                         goto bail;
                 }
         } else if (seyrusefer->state == SEYRUSEFER_STATE_ERROR) {
@@ -297,6 +405,31 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->connected   = 0;
         seyrusefer->pconnected  = -1;
 
+        seyrusefer->connect_wait_led_brightness_low     = 2;
+        seyrusefer->connect_wait_led_brightness_high    = 50;
+        seyrusefer->connect_wait_led_brightness_op      = 1;
+        seyrusefer->connect_wait_led_brightness_dur     = 20;
+        seyrusefer->connect_wait_led_brightness_tsms    = 0;
+        seyrusefer->connect_wait_led_brightness         = seyrusefer->connect_wait_led_brightness_low;
+
+        seyrusefer->mode_select_buttons_dur             = 5000;
+        seyrusefer->mode_select_buttons_tsms            = 0;
+
+        seyrusefer->mode_select_led_brightness_low      = 2;
+        seyrusefer->mode_select_led_brightness_high     = 50;
+        seyrusefer->mode_select_led_brightness_dur      = 250;
+        seyrusefer->mode_select_led_brightness_tsms     = 0;
+        seyrusefer->mode_select_led_brightness          = seyrusefer->mode_select_led_brightness_low;
+
+        seyrusefer->wifi_setup_buttons_dur              = 5000;
+        seyrusefer->wifi_setup_buttons_tsms             = 0;
+
+        seyrusefer->wifi_setup_led_brightness_low       = 2;
+        seyrusefer->wifi_setup_led_brightness_high      = 50;
+        seyrusefer->wifi_setup_led_brightness_dur       = 250;
+        seyrusefer->wifi_setup_led_brightness_tsms      = 0;
+        seyrusefer->wifi_setup_led_brightness           = seyrusefer->wifi_setup_led_brightness_low;
+
         seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_1;
         for (i = 0; i < SEYRUSEFER_LAYOUT_MODE_COUNT; i++) {
                 for (j = 0; j < SEYRUSEFER_LAYOUT_BUTTON_COUNT; j++) {
@@ -304,11 +437,37 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
                 }
         }
 
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = HID_KEY_C;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = HID_KEY_R;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = HID_KEY_D;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = HID_KEY_VOLUME_UP;
-        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = HID_KEY_VOLUME_DOWN;
+        seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_1;
+
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_KEY_C;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_KEY_R;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_KEY_D;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_1].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
+
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_2].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
+
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_CONSUMER_PLAY_PAUSE;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_3].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
+
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_4].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_KEY_RESERVED;
+
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key = SEYRUSEFER_HID_KEY_RESERVED;
+        seyrusefer->layout_config.modes[SEYRUSEFER_LAYOUT_MODE_5].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key = SEYRUSEFER_HID_KEY_RESERVED;
 
         seyrusefer_infof("creating config");
         seyrusefer_infof("  path     : %s", "config");
@@ -363,6 +522,7 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
                 goto bail;
         }
         seyrusefer_wifi_init_options.enabled                     = 0;
+        seyrusefer_wifi_init_options.config                      = seyrusefer->config;
         seyrusefer_wifi_init_options.callback_ap_start           = wifi_callback_ap_start;
         seyrusefer_wifi_init_options.callback_ap_stop            = wifi_callback_ap_stop;
         seyrusefer_wifi_init_options.callback_context            = seyrusefer;
@@ -460,6 +620,17 @@ void seyrusefer_destroy (struct seyrusefer *seyrusefer)
 int seyrusefer_process (struct seyrusefer *seyrusefer)
 {
         int rc;
+        int64_t now;
+
+        int buttons_pressed;
+        int buttons_released;
+        int buttons_active;
+
+        now = seyrusefer_timer_get_time(seyrusefer->timer);
+
+        buttons_pressed  = 0;
+        buttons_released = 0;
+        buttons_active   = 0;
 
         if (seyrusefer->restart) {
                 seyrusefer_errorf("restart requested, in 1 second");
@@ -479,75 +650,155 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 goto bail;
         }
 
+        seyrusefer->buttons   = seyrusefer_platform_get_buttons();
         seyrusefer->connected = seyrusefer_hid_connected(seyrusefer->hid);
+
+        if (seyrusefer->buttons != seyrusefer->pbuttons) {
+                buttons_pressed  = seyrusefer->buttons & ~seyrusefer->pbuttons;
+                buttons_released = seyrusefer->pbuttons & ~seyrusefer->buttons;
+                buttons_active   = buttons_pressed | buttons_released;
+                seyrusefer_debugf("buttons: 0x%08x, pressed: 0x%08x, released: 0x%08x (b: 0x%08x, p: 0x%08x)", buttons_active, buttons_pressed, buttons_released, seyrusefer->buttons, seyrusefer->pbuttons);
+        }
+
         if (seyrusefer->connected != seyrusefer->pconnected) {
-                seyrusefer->pconnected = seyrusefer->connected;
                 seyrusefer_debugf("connected: %d", seyrusefer->connected);
+        }
+
+        if (seyrusefer->state == SEYRUSEFER_STATE_RUNNING) {
+                if (seyrusefer->connected != seyrusefer->pconnected) {
+                        if (seyrusefer->connected == 0) {
+                                seyrusefer->connect_wait_led_brightness_tsms = now;
+                                seyrusefer->connect_wait_led_brightness      = seyrusefer->connect_wait_led_brightness_low;
+                                seyrusefer_platform_set_led(seyrusefer->connect_wait_led_brightness);
+                        } else if (seyrusefer->connected == 1) {
+                                seyrusefer_platform_set_led(0);
+                        }
+                }
 
                 if (seyrusefer->connected == 0) {
-                        seyrusefer->led_brightness_low  = 2;
-                        seyrusefer->led_brightness_high = 50;
-                        seyrusefer->led_brightness_op   = 1;
-                        seyrusefer->led_brightness_dur  = 2;
-                        seyrusefer->led_brightness_tick = 0;
-                        seyrusefer->led_brightness      = seyrusefer->led_brightness_low;
-                } else if (seyrusefer->connected == 1) {
-                        seyrusefer_platform_set_led(0);
-                }
-        }
-        if (seyrusefer->connected == 0) {
-                seyrusefer_platform_set_led(seyrusefer->led_brightness);
-                seyrusefer->led_brightness_tick += 1;
-                if (seyrusefer->led_brightness_tick >= seyrusefer->led_brightness_dur) {
-                        if (seyrusefer->led_brightness > seyrusefer->led_brightness_high) {
-                                seyrusefer->led_brightness    = seyrusefer->led_brightness_high;
-                                seyrusefer->led_brightness_op = -1;
-                        } else if (seyrusefer->led_brightness < seyrusefer->led_brightness_low) {
-                                seyrusefer->led_brightness    = seyrusefer->led_brightness_low;
-                                seyrusefer->led_brightness_op = +1;
-                        } else {
-                                seyrusefer->led_brightness += seyrusefer->led_brightness_op;
+                        if (now < seyrusefer->connect_wait_led_brightness_tsms ||
+                            now - seyrusefer->connect_wait_led_brightness_tsms >= seyrusefer->connect_wait_led_brightness_dur * 1000) {
+                                if (seyrusefer->connect_wait_led_brightness > seyrusefer->connect_wait_led_brightness_high) {
+                                        seyrusefer->connect_wait_led_brightness    = seyrusefer->connect_wait_led_brightness_high;
+                                        seyrusefer->connect_wait_led_brightness_op = -1;
+                                } else if (seyrusefer->connect_wait_led_brightness < seyrusefer->connect_wait_led_brightness_low) {
+                                        seyrusefer->connect_wait_led_brightness    = seyrusefer->connect_wait_led_brightness_low;
+                                        seyrusefer->connect_wait_led_brightness_op = +1;
+                                } else {
+                                        seyrusefer->connect_wait_led_brightness += seyrusefer->connect_wait_led_brightness_op;
+                                }
+                                seyrusefer_platform_set_led(seyrusefer->connect_wait_led_brightness);
+                                seyrusefer->connect_wait_led_brightness_tsms = now;
                         }
-                        seyrusefer->led_brightness_tick = 0;
-                }
-        } else if (seyrusefer->connected == 1) {
-        } else {
-                seyrusefer_errorf("seyrusefer_hid_connected failed, rc: %d", rc);
+                } else if (seyrusefer->connected == 1) {
+                        if (seyrusefer->buttons != seyrusefer->pbuttons) {
+                                seyrusefer_platform_set_led(seyrusefer->buttons ? 50 : 0);
+
+                                if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_1) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_1);
+                                }
+                                if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_2) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_2);
+                                }
+                                if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_3) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_3);
+                                }
+                                if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_4) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_4);
+                                }
+                                if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_5) {
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_5);
+                                }
+                        }
+                } else {
+                        seyrusefer_errorf("seyrusefer_hid_connected failed, rc: %d", rc);
                         goto bail;
-        }
-
-        seyrusefer->buttons = seyrusefer_platform_get_buttons();
-        if (seyrusefer->buttons != seyrusefer->pbuttons) {
-                int pressed  = seyrusefer->buttons & ~seyrusefer->pbuttons;
-                int released = seyrusefer->pbuttons & ~seyrusefer->buttons;
-                int buttons  = pressed | released;
-
-                seyrusefer->pbuttons = seyrusefer->buttons;
-                seyrusefer_debugf("buttons: 0x%08x, pressed: 0x%08x, released: 0x%08x", buttons, pressed, released);
-
-                seyrusefer_platform_set_led(seyrusefer->buttons ? 50 : 0);
-
-                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_1) {
-                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_1].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_1);
-                }
-                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_2) {
-                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_2].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_2);
-                }
-                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_3) {
-                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_3].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_3);
-                }
-                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_4) {
-                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_4].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_4);
-                }
-                if (buttons & SEYRUSEFER_PLATFORM_BUTTON_5) {
-                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->layout_config.modes[seyrusefer->layout_config.mode].buttons[SEYRUSEFER_LAYOUT_BUTTON_5].key, pressed & SEYRUSEFER_PLATFORM_BUTTON_5);
                 }
 
                 if (seyrusefer->buttons == (SEYRUSEFER_PLATFORM_BUTTON_1 | SEYRUSEFER_PLATFORM_BUTTON_2)) {
-                        seyrusefer_errorf("mode select");
+                        if (seyrusefer->mode_select_buttons_tsms == 0) {
+                                seyrusefer->mode_select_buttons_tsms = now;
+                        }
+                        if (now < seyrusefer->mode_select_buttons_tsms ||
+                            now - seyrusefer->mode_select_buttons_tsms >= seyrusefer->mode_select_buttons_dur * 1000) {
+                                seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_MODE_SELECT);
+                        }
+                } else {
+                        seyrusefer->mode_select_buttons_tsms = 0;
                 }
+
+                if (seyrusefer->buttons == (SEYRUSEFER_PLATFORM_BUTTON_1 | SEYRUSEFER_PLATFORM_BUTTON_3)) {
+                        if (seyrusefer->wifi_setup_buttons_tsms == 0) {
+                                seyrusefer->wifi_setup_buttons_tsms = now;
+                        }
+                        if (now < seyrusefer->wifi_setup_buttons_tsms ||
+                            now - seyrusefer->wifi_setup_buttons_tsms >= seyrusefer->wifi_setup_buttons_dur * 1000) {
+                                seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_WIFI_SETUP);
+                        }
+                } else {
+                        seyrusefer->wifi_setup_buttons_tsms = 0;
+                }
+        } else if (seyrusefer->state == SEYRUSEFER_STATE_MODE_SELECT) {
+                if (now < seyrusefer->mode_select_led_brightness_tsms ||
+                    now - seyrusefer->mode_select_led_brightness_tsms >= seyrusefer->mode_select_led_brightness_dur * 1000) {
+                        if (seyrusefer->mode_select_led_brightness == seyrusefer->mode_select_led_brightness_high) {
+                                seyrusefer->mode_select_led_brightness = seyrusefer->mode_select_led_brightness_low;
+                        } else if (seyrusefer->mode_select_led_brightness == seyrusefer->mode_select_led_brightness_low) {
+                                seyrusefer->mode_select_led_brightness = seyrusefer->mode_select_led_brightness_high;
+                        } else {
+                                seyrusefer->mode_select_led_brightness = seyrusefer->mode_select_led_brightness_low;
+                        }
+                        seyrusefer_platform_set_led(seyrusefer->mode_select_led_brightness);
+                        seyrusefer->mode_select_led_brightness_tsms = now;
+                }
+                if (seyrusefer->buttons != seyrusefer->pbuttons &&
+                    seyrusefer->pbuttons == 0) {
+                        if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_1) {
+                                seyrusefer_debugf("mode-1");
+                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_1;
+                                seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
+                        } else if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_2) {
+                                seyrusefer_debugf("mode-2");
+                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_2;
+                                seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
+                        } else if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_3) {
+                                seyrusefer_debugf("mode-3");
+                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_3;
+                                seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
+                        } else if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_4) {
+                                seyrusefer_debugf("mode-4");
+                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_4;
+                                seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
+                        } else if (seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_5) {
+                                seyrusefer_debugf("mode-5");
+                                seyrusefer->layout_config.mode = SEYRUSEFER_LAYOUT_MODE_5;
+                                seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
+                        }
+                }
+        } else if (seyrusefer->state == SEYRUSEFER_STATE_WIFI_SETUP) {
+                if (now < seyrusefer->wifi_setup_led_brightness_tsms ||
+                    now - seyrusefer->wifi_setup_led_brightness_tsms >= seyrusefer->wifi_setup_led_brightness_dur * 1000) {
+                        if (seyrusefer->wifi_setup_led_brightness == seyrusefer->wifi_setup_led_brightness_high) {
+                                seyrusefer->wifi_setup_led_brightness = seyrusefer->wifi_setup_led_brightness_low;
+                        } else if (seyrusefer->wifi_setup_led_brightness == seyrusefer->wifi_setup_led_brightness_low) {
+                                seyrusefer->wifi_setup_led_brightness = seyrusefer->wifi_setup_led_brightness_high;
+                        } else {
+                                seyrusefer->wifi_setup_led_brightness = seyrusefer->wifi_setup_led_brightness_low;
+                        }
+                        seyrusefer_platform_set_led(seyrusefer->wifi_setup_led_brightness);
+                        seyrusefer->wifi_setup_led_brightness_tsms = now;
+                }
+                if (seyrusefer->buttons != seyrusefer->pbuttons &&
+                    seyrusefer->pbuttons == 0) {
+                        seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RUNNING);
+                }
+        } else {
+                seyrusefer_errorf("seyrusefer state: %d is invalid", seyrusefer->state);
+                goto bail;
         }
 
+        seyrusefer->pbuttons   = seyrusefer->buttons;
+        seyrusefer->pconnected = seyrusefer->connected;
         return 0;
 bail:   return -1;
 }

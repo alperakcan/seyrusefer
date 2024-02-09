@@ -1,8 +1,11 @@
 
+struct seyrusefer_config;
 struct seyrusefer_wifi;
 
 struct seyrusefer_wifi_init_options {
         int enabled;
+
+        struct seyrusefer_config *config;
 
         void (*callback_ap_start) (struct seyrusefer_wifi *wifi, void *context);
         void (*callback_ap_stop) (struct seyrusefer_wifi *wifi, void *context);

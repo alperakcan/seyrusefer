@@ -374,28 +374,182 @@ int seyrusefer_hid_connected (struct seyrusefer_hid *hid)
         return hid->sec_conn;
 }
 
+static int seyusefer_hid_key_map[] = {
+        [SEYRUSEFER_HID_KEY_RESERVED] = HID_KEY_RESERVED,
+        [SEYRUSEFER_HID_KEY_A] = HID_KEY_A,
+        [SEYRUSEFER_HID_KEY_B] = HID_KEY_B,
+        [SEYRUSEFER_HID_KEY_C] = HID_KEY_C,
+        [SEYRUSEFER_HID_KEY_D] = HID_KEY_D,
+        [SEYRUSEFER_HID_KEY_E] = HID_KEY_E,
+        [SEYRUSEFER_HID_KEY_F] = HID_KEY_F,
+        [SEYRUSEFER_HID_KEY_G] = HID_KEY_G,
+        [SEYRUSEFER_HID_KEY_H] = HID_KEY_H,
+        [SEYRUSEFER_HID_KEY_I] = HID_KEY_I,
+        [SEYRUSEFER_HID_KEY_J] = HID_KEY_J,
+        [SEYRUSEFER_HID_KEY_K] = HID_KEY_K,
+        [SEYRUSEFER_HID_KEY_L] = HID_KEY_L,
+        [SEYRUSEFER_HID_KEY_M] = HID_KEY_M,
+        [SEYRUSEFER_HID_KEY_N] = HID_KEY_N,
+        [SEYRUSEFER_HID_KEY_O] = HID_KEY_O,
+        [SEYRUSEFER_HID_KEY_P] = HID_KEY_P,
+        [SEYRUSEFER_HID_KEY_Q] = HID_KEY_Q,
+        [SEYRUSEFER_HID_KEY_R] = HID_KEY_R,
+        [SEYRUSEFER_HID_KEY_S] = HID_KEY_S,
+        [SEYRUSEFER_HID_KEY_T] = HID_KEY_T,
+        [SEYRUSEFER_HID_KEY_U] = HID_KEY_U,
+        [SEYRUSEFER_HID_KEY_V] = HID_KEY_V,
+        [SEYRUSEFER_HID_KEY_W] = HID_KEY_W,
+        [SEYRUSEFER_HID_KEY_X] = HID_KEY_X,
+        [SEYRUSEFER_HID_KEY_Y] = HID_KEY_Y,
+        [SEYRUSEFER_HID_KEY_Z] = HID_KEY_Z,
+        [SEYRUSEFER_HID_KEY_1] = HID_KEY_1,
+        [SEYRUSEFER_HID_KEY_2] = HID_KEY_2,
+        [SEYRUSEFER_HID_KEY_3] = HID_KEY_3,
+        [SEYRUSEFER_HID_KEY_4] = HID_KEY_4,
+        [SEYRUSEFER_HID_KEY_5] = HID_KEY_5,
+        [SEYRUSEFER_HID_KEY_6] = HID_KEY_6,
+        [SEYRUSEFER_HID_KEY_7] = HID_KEY_7,
+        [SEYRUSEFER_HID_KEY_8] = HID_KEY_8,
+        [SEYRUSEFER_HID_KEY_9] = HID_KEY_9,
+        [SEYRUSEFER_HID_KEY_0] = HID_KEY_0,
+        [SEYRUSEFER_HID_KEY_RETURN] = HID_KEY_RETURN,
+        [SEYRUSEFER_HID_KEY_ESCAPE] = HID_KEY_ESCAPE,
+        [SEYRUSEFER_HID_KEY_DELETE] = HID_KEY_DELETE,
+        [SEYRUSEFER_HID_KEY_TAB] = HID_KEY_TAB,
+        [SEYRUSEFER_HID_KEY_SPACEBAR] = HID_KEY_SPACEBAR,
+        [SEYRUSEFER_HID_KEY_MINUS] = HID_KEY_MINUS,
+        [SEYRUSEFER_HID_KEY_EQUAL] = HID_KEY_EQUAL,
+        [SEYRUSEFER_HID_KEY_LEFT_BRKT] = HID_KEY_LEFT_BRKT,
+        [SEYRUSEFER_HID_KEY_RIGHT_BRKT] = HID_KEY_RIGHT_BRKT,
+        [SEYRUSEFER_HID_KEY_BACK_SLASH] = HID_KEY_BACK_SLASH,
+        [SEYRUSEFER_HID_KEY_SEMI_COLON] = HID_KEY_SEMI_COLON,
+        [SEYRUSEFER_HID_KEY_SGL_QUOTE] = HID_KEY_SGL_QUOTE,
+        [SEYRUSEFER_HID_KEY_GRV_ACCENT] = HID_KEY_GRV_ACCENT,
+        [SEYRUSEFER_HID_KEY_COMMA] = HID_KEY_COMMA,
+        [SEYRUSEFER_HID_KEY_DOT] = HID_KEY_DOT,
+        [SEYRUSEFER_HID_KEY_FWD_SLASH] = HID_KEY_FWD_SLASH,
+        [SEYRUSEFER_HID_KEY_CAPS_LOCK] = HID_KEY_CAPS_LOCK,
+        [SEYRUSEFER_HID_KEY_F1] = HID_KEY_F1,
+        [SEYRUSEFER_HID_KEY_F2] = HID_KEY_F2,
+        [SEYRUSEFER_HID_KEY_F3] = HID_KEY_F3,
+        [SEYRUSEFER_HID_KEY_F4] = HID_KEY_F4,
+        [SEYRUSEFER_HID_KEY_F5] = HID_KEY_F5,
+        [SEYRUSEFER_HID_KEY_F6] = HID_KEY_F6,
+        [SEYRUSEFER_HID_KEY_F7] = HID_KEY_F7,
+        [SEYRUSEFER_HID_KEY_F8] = HID_KEY_F8,
+        [SEYRUSEFER_HID_KEY_F9] = HID_KEY_F9,
+        [SEYRUSEFER_HID_KEY_F10] = HID_KEY_F10,
+        [SEYRUSEFER_HID_KEY_F11] = HID_KEY_F11,
+        [SEYRUSEFER_HID_KEY_F12] = HID_KEY_F12,
+        [SEYRUSEFER_HID_KEY_PRNT_SCREEN] = HID_KEY_PRNT_SCREEN,
+        [SEYRUSEFER_HID_KEY_SCROLL_LOCK] = HID_KEY_SCROLL_LOCK,
+        [SEYRUSEFER_HID_KEY_PAUSE] = HID_KEY_PAUSE,
+        [SEYRUSEFER_HID_KEY_INSERT] = HID_KEY_INSERT,
+        [SEYRUSEFER_HID_KEY_HOME] = HID_KEY_HOME,
+        [SEYRUSEFER_HID_KEY_PAGE_UP] = HID_KEY_PAGE_UP,
+        [SEYRUSEFER_HID_KEY_DELETE_FWD] = HID_KEY_DELETE_FWD,
+        [SEYRUSEFER_HID_KEY_END] = HID_KEY_END,
+        [SEYRUSEFER_HID_KEY_PAGE_DOWN] = HID_KEY_PAGE_DOWN,
+        [SEYRUSEFER_HID_KEY_RIGHT_ARROW] = HID_KEY_RIGHT_ARROW,
+        [SEYRUSEFER_HID_KEY_LEFT_ARROW] = HID_KEY_LEFT_ARROW,
+        [SEYRUSEFER_HID_KEY_DOWN_ARROW] = HID_KEY_DOWN_ARROW,
+        [SEYRUSEFER_HID_KEY_UP_ARROW] = HID_KEY_UP_ARROW,
+        [SEYRUSEFER_HID_KEY_NUM_LOCK] = HID_KEY_NUM_LOCK,
+        [SEYRUSEFER_HID_KEY_DIVIDE] = HID_KEY_DIVIDE,
+        [SEYRUSEFER_HID_KEY_MULTIPLY] = HID_KEY_MULTIPLY,
+        [SEYRUSEFER_HID_KEY_SUBTRACT] = HID_KEY_SUBTRACT,
+        [SEYRUSEFER_HID_KEY_ADD] = HID_KEY_ADD,
+        [SEYRUSEFER_HID_KEY_ENTER] = HID_KEY_ENTER,
+        [SEYRUSEFER_HID_KEYPAD_1] = HID_KEYPAD_1,
+        [SEYRUSEFER_HID_KEYPAD_2] = HID_KEYPAD_2,
+        [SEYRUSEFER_HID_KEYPAD_3] = HID_KEYPAD_3,
+        [SEYRUSEFER_HID_KEYPAD_4] = HID_KEYPAD_4,
+        [SEYRUSEFER_HID_KEYPAD_5] = HID_KEYPAD_5,
+        [SEYRUSEFER_HID_KEYPAD_6] = HID_KEYPAD_6,
+        [SEYRUSEFER_HID_KEYPAD_7] = HID_KEYPAD_7,
+        [SEYRUSEFER_HID_KEYPAD_8] = HID_KEYPAD_8,
+        [SEYRUSEFER_HID_KEYPAD_9] = HID_KEYPAD_9,
+        [SEYRUSEFER_HID_KEYPAD_0] = HID_KEYPAD_0,
+        [SEYRUSEFER_HID_KEYPAD_DOT] = HID_KEYPAD_DOT,
+        [SEYRUSEFER_HID_KEY_MUTE] = HID_KEY_MUTE,
+        [SEYRUSEFER_HID_KEY_VOLUME_UP] = HID_KEY_VOLUME_UP,
+        [SEYRUSEFER_HID_KEY_VOLUME_DOWN] = HID_KEY_VOLUME_DOWN,
+        [SEYRUSEFER_HID_KEY_LEFT_CTRL] = HID_KEY_LEFT_CTRL,
+        [SEYRUSEFER_HID_KEY_LEFT_SHIFT] = HID_KEY_LEFT_SHIFT,
+        [SEYRUSEFER_HID_KEY_LEFT_ALT] = HID_KEY_LEFT_ALT,
+        [SEYRUSEFER_HID_KEY_LEFT_GUI] = HID_KEY_LEFT_GUI,
+        [SEYRUSEFER_HID_KEY_RIGHT_CTRL] = HID_KEY_RIGHT_CTRL,
+        [SEYRUSEFER_HID_KEY_RIGHT_SHIFT] = HID_KEY_RIGHT_SHIFT,
+        [SEYRUSEFER_HID_KEY_RIGHT_ALT] = HID_KEY_RIGHT_ALT,
+        [SEYRUSEFER_HID_KEY_RIGHT_GUI] = HID_KEY_RIGHT_GUI,
+        [SEYRUSEFER_HID_MOUSE_LEFT] = HID_MOUSE_LEFT,
+        [SEYRUSEFER_HID_MOUSE_MIDDLE] = HID_MOUSE_MIDDLE,
+        [SEYRUSEFER_HID_MOUSE_RIGHT] = HID_MOUSE_RIGHT,
+        [SEYRUSEFER_HID_CONSUMER_POWER] = HID_CONSUMER_POWER,
+        [SEYRUSEFER_HID_CONSUMER_RESET] = HID_CONSUMER_RESET,
+        [SEYRUSEFER_HID_CONSUMER_SLEEP] = HID_CONSUMER_SLEEP,
+        [SEYRUSEFER_HID_CONSUMER_MENU] = HID_CONSUMER_MENU,
+        [SEYRUSEFER_HID_CONSUMER_SELECTION] = HID_CONSUMER_SELECTION,
+        [SEYRUSEFER_HID_CONSUMER_ASSIGN_SEL] = HID_CONSUMER_ASSIGN_SEL,
+        [SEYRUSEFER_HID_CONSUMER_MODE_STEP] = HID_CONSUMER_MODE_STEP,
+        [SEYRUSEFER_HID_CONSUMER_RECALL_LAST] = HID_CONSUMER_RECALL_LAST,
+        [SEYRUSEFER_HID_CONSUMER_QUIT] = HID_CONSUMER_QUIT,
+        [SEYRUSEFER_HID_CONSUMER_HELP] = HID_CONSUMER_HELP,
+        [SEYRUSEFER_HID_CONSUMER_CHANNEL_UP] = HID_CONSUMER_CHANNEL_UP,
+        [SEYRUSEFER_HID_CONSUMER_CHANNEL_DOWN] = HID_CONSUMER_CHANNEL_DOWN,
+        [SEYRUSEFER_HID_CONSUMER_PLAY] = HID_CONSUMER_PLAY,
+        [SEYRUSEFER_HID_CONSUMER_PAUSE] = HID_CONSUMER_PAUSE,
+        [SEYRUSEFER_HID_CONSUMER_RECORD] = HID_CONSUMER_RECORD,
+        [SEYRUSEFER_HID_CONSUMER_FAST_FORWARD] = HID_CONSUMER_FAST_FORWARD,
+        [SEYRUSEFER_HID_CONSUMER_REWIND] = HID_CONSUMER_REWIND,
+        [SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK] = HID_CONSUMER_SCAN_NEXT_TRK,
+        [SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK] = HID_CONSUMER_SCAN_PREV_TRK,
+        [SEYRUSEFER_HID_CONSUMER_STOP] = HID_CONSUMER_STOP,
+        [SEYRUSEFER_HID_CONSUMER_EJECT] = HID_CONSUMER_EJECT,
+        [SEYRUSEFER_HID_CONSUMER_RANDOM_PLAY] = HID_CONSUMER_RANDOM_PLAY,
+        [SEYRUSEFER_HID_CONSUMER_SELECT_DISC] = HID_CONSUMER_SELECT_DISC,
+        [SEYRUSEFER_HID_CONSUMER_ENTER_DISC] = HID_CONSUMER_ENTER_DISC,
+        [SEYRUSEFER_HID_CONSUMER_REPEAT] = HID_CONSUMER_REPEAT,
+        [SEYRUSEFER_HID_CONSUMER_STOP_EJECT] = HID_CONSUMER_STOP_EJECT,
+        [SEYRUSEFER_HID_CONSUMER_PLAY_PAUSE] = HID_CONSUMER_PLAY_PAUSE,
+        [SEYRUSEFER_HID_CONSUMER_PLAY_SKIP] = HID_CONSUMER_PLAY_SKIP,
+        [SEYRUSEFER_HID_CONSUMER_VOLUME] = HID_CONSUMER_VOLUME,
+        [SEYRUSEFER_HID_CONSUMER_BALANCE] = HID_CONSUMER_BALANCE,
+        [SEYRUSEFER_HID_CONSUMER_MUTE] = HID_CONSUMER_MUTE,
+        [SEYRUSEFER_HID_CONSUMER_BASS] = HID_CONSUMER_BASS,
+        [SEYRUSEFER_HID_CONSUMER_VOLUME_UP] = HID_CONSUMER_VOLUME_UP,
+        [SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN] = HID_CONSUMER_VOLUME_DOWN,
+};
+
 int seyrusefer_hid_send_key (struct seyrusefer_hid *hid, int key, int pressed)
 {
-        int rc;
-        rc = 0;
-        if (key >= HID_KEY_RESERVED && key <= HID_KEY_RIGHT_GUI) {
-                if (key >= HID_KEY_LEFT_CTRL && key <= HID_KEY_RIGHT_GUI) {
+        if ((key < 0) ||
+            (key >= sizeof(seyusefer_hid_key_map) / sizeof(seyusefer_hid_key_map[0]))) {
+                seyrusefer_errorf("key is invalid");
+                goto bail;
+        }
+        if (key >= SEYRUSEFER_HID_KEY_A && key <= SEYRUSEFER_HID_KEY_RIGHT_GUI) {
+                int send = 1;
+                if (key >= SEYRUSEFER_HID_KEY_LEFT_CTRL && key <= SEYRUSEFER_HID_KEY_RIGHT_GUI) {
+                        seyrusefer_errorf("key is invalid");
+                        goto bail;
                 } else {
-                        bool found = false;
+                        int i;
+                        int found = 0;
                         if (pressed) {
-                                for (int i = 0; i < sizeof(hid->keyboard_buffer); ++i) {
+                                for (i = 0; i < sizeof(hid->keyboard_buffer); ++i) {
                                         if (hid->keyboard_buffer[i] == 0) {
-                                                hid->keyboard_buffer[i] = key;
-                                                found = true;
+                                                hid->keyboard_buffer[i] = seyusefer_hid_key_map[key];
+                                                found = 1;
                                                 break;
                                         }
                                 }
                         } else {
-                                for (int i = 0; i < sizeof(hid->keyboard_buffer); ++i) {
+                                for (i = 0; i < sizeof(hid->keyboard_buffer); ++i) {
                                         if (!found) {
-                                                if (hid->keyboard_buffer[i] == key) {
+                                                if (hid->keyboard_buffer[i] == seyusefer_hid_key_map[key]) {
                                                         hid->keyboard_buffer[i] = 0;
-                                                        found = true;
+                                                        found = 1;
                                                 }
                                         } else {
                                                 if (hid->keyboard_buffer[i] == 0) {
@@ -407,12 +561,18 @@ int seyrusefer_hid_send_key (struct seyrusefer_hid *hid, int key, int pressed)
                                 }
                         }
                         if (!found) {
-                                rc = 1;
+                                send = 0;
                         }
                 }
-        }
-        if (rc == 0) {
-                esp_hidd_send_keyboard_value(hid->hid_conn_id, 0, hid->keyboard_buffer, sizeof(hid->keyboard_buffer));
+                if (send == 1) {
+                        esp_hidd_send_keyboard_value(hid->hid_conn_id, 0, hid->keyboard_buffer, sizeof(hid->keyboard_buffer));
+                }
+        } else if (key >= SEYRUSEFER_HID_CONSUMER_POWER && key <= SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN) {
+                esp_hidd_send_consumer_value(hid->hid_conn_id, seyusefer_hid_key_map[key], pressed);
+        } else {
+                seyrusefer_errorf("key is invalid");
+                goto bail;
         }
         return 0;
+bail:   return -1;
 }

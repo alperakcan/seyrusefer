@@ -9,6 +9,7 @@
 
 #define SEYRUSEFER_DEBUG_TAG "wifi"
 #include "debug.h"
+#include "config.h"
 #include "wifi.h"
 
 struct seyrusefer_wifi {
@@ -16,9 +17,7 @@ struct seyrusefer_wifi {
         esp_event_handler_instance_t wifi_event_handler;
 
         int enabled;
-
-        char ap_ssid[32];
-        char ap_password[64];
+        struct seyrusefer_config *config;
 
         void (*callback_ap_start) (struct seyrusefer_wifi *wifi, void *context);
         void (*callback_ap_stop) (struct seyrusefer_wifi *wifi, void *context);
@@ -109,6 +108,10 @@ struct seyrusefer_wifi * seyrusefer_wifi_create (struct seyrusefer_wifi_init_opt
                 seyrusefer_errorf("options is invalid");
                 goto bail;
         }
+        if (options->config == NULL) {
+                seyrusefer_errorf("options is invalid");
+                goto bail;
+        }
 
         wifi = malloc(sizeof(struct seyrusefer_wifi));
         if (wifi == NULL) {
@@ -117,6 +120,7 @@ struct seyrusefer_wifi * seyrusefer_wifi_create (struct seyrusefer_wifi_init_opt
         }
         memset(wifi, 0, sizeof(struct seyrusefer_wifi));
 
+        wifi->config                    = options->config;
         wifi->callback_ap_start         = options->callback_ap_start;
         wifi->callback_ap_stop          = options->callback_ap_stop;
         wifi->callback_context          = options->callback_context;
@@ -199,8 +203,8 @@ bail:   return -1;
 int seyrusefer_wifi_start (struct seyrusefer_wifi *wifi)
 {
         int rc;
-        const char *ap_ssid;
-        const char *ap_pass;
+        char *ap_ssid;
+        char *ap_pass;
 
         ap_ssid = NULL;
         ap_pass = NULL;
@@ -214,12 +218,12 @@ int seyrusefer_wifi_start (struct seyrusefer_wifi *wifi)
                 goto out;
         }
 
-        ap_ssid = wifi->ap_ssid;
+        ap_ssid = seyrusefer_config_get_string(wifi->config, "wifi_ap_ssid", "seyrusefer");
         if (ap_ssid == NULL || strlen(ap_ssid) == 0) {
                 seyrusefer_errorf("ap_ssid is invalid");
                 goto bail;
         }
-        ap_pass = wifi->ap_password;
+        ap_pass = seyrusefer_config_get_string(wifi->config, "wifi_ap_password", "seyrusefer");
         if (ap_pass == NULL || strlen(ap_pass) == 0) {
                 seyrusefer_errorf("ap_pass is invalid");
                 goto bail;
@@ -256,9 +260,13 @@ int seyrusefer_wifi_start (struct seyrusefer_wifi *wifi)
                 goto bail;
         }
 
-out:    wifi->enabled = 1;
+out:    free(ap_ssid);
+        free(ap_pass);
+        wifi->enabled = 1;
         return 0;
-bail:   return -1;
+bail:   free(ap_ssid);
+        free(ap_pass);
+        return -1;
 }
 
 int seyrusefer_wifi_stop (struct seyrusefer_wifi *wifi)
@@ -316,8 +324,12 @@ int seyrusefer_wifi_ap_set_config (struct seyrusefer_wifi *wifi, struct seyrusef
                 goto bail;
         }
 
-        snprintf(wifi->ap_ssid, sizeof(wifi->ap_ssid), "%s", config->ssid);
-        snprintf(wifi->ap_password, sizeof(wifi->ap_password), "%s", config->password);
+        rc  = seyrusefer_config_set_string(wifi->config, "wifi_ap_ssid", config->ssid);
+        rc |= seyrusefer_config_set_string(wifi->config, "wifi_ap_password", config->password);
+        if (rc < 0) {
+                seyrusefer_errorf("can not set config");
+                goto bail;
+        }
 
         if (wifi->enabled == 1) {
                 rc = seyrusefer_wifi_ap_restart(wifi);
