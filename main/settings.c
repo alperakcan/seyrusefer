@@ -1,4 +1,6 @@
 
+#include <stdlib.h>
+#include <strings.h>
 #include <stdint.h>
 
 #include "hid.h"
@@ -14,6 +16,16 @@ const char * seyrusefer_settings_mode_to_string (int mode)
         return "invalid";
 }
 
+int seyrusefer_settings_mode_from_string (const char *mode)
+{
+        if (strcasecmp(mode, "MODE_1") == 0) return SEYRUSEFER_SETTINGS_MODE_1;
+        if (strcasecmp(mode, "MODE_2") == 0) return SEYRUSEFER_SETTINGS_MODE_2;
+        if (strcasecmp(mode, "MODE_3") == 0) return SEYRUSEFER_SETTINGS_MODE_3;
+        if (strcasecmp(mode, "MODE_4") == 0) return SEYRUSEFER_SETTINGS_MODE_4;
+        if (strcasecmp(mode, "MODE_5") == 0) return SEYRUSEFER_SETTINGS_MODE_5;
+        return SEYRUSEFER_SETTINGS_MODE_INVALID;
+}
+
 const char * seyrusefer_settings_button_to_string (int button)
 {
         if (button == SEYRUSEFER_SETTINGS_BUTTON_1) return "BUTTON_1";
@@ -23,6 +35,17 @@ const char * seyrusefer_settings_button_to_string (int button)
         if (button == SEYRUSEFER_SETTINGS_BUTTON_5) return "BUTTON_5";
         return "invalid";
 }
+
+int seyrusefer_settings_button_from_string (const char *button)
+{
+        if (strcasecmp(button, "BUTTON_1") == 0) return SEYRUSEFER_SETTINGS_BUTTON_1;
+        if (strcasecmp(button, "BUTTON_2") == 0) return SEYRUSEFER_SETTINGS_BUTTON_2;
+        if (strcasecmp(button, "BUTTON_3") == 0) return SEYRUSEFER_SETTINGS_BUTTON_3;
+        if (strcasecmp(button, "BUTTON_4") == 0) return SEYRUSEFER_SETTINGS_BUTTON_4;
+        if (strcasecmp(button, "BUTTON_5") == 0) return SEYRUSEFER_SETTINGS_BUTTON_5;
+        return SEYRUSEFER_SETTINGS_BUTTON_INVALID;
+}
+
 const char * seyrusefer_settings_key_to_string (int key)
 {
         if (key == SEYRUSEFER_HID_KEY_RESERVED) return "KEY_RESERVED";
@@ -170,4 +193,153 @@ const char * seyrusefer_settings_key_to_string (int key)
         if (key == SEYRUSEFER_HID_CONSUMER_VOLUME_UP) return "CONSUMER_VOLUME_UP";
         if (key == SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN) return "CONSUMER_VOLUME_DOWN";
         return "invalid";
+}
+
+int seyrusefer_settings_key_from_string (const char *key)
+{
+        if (strcasecmp(key, "KEY_RESERVED") == 0) return SEYRUSEFER_HID_KEY_RESERVED;
+        if (strcasecmp(key, "KEY_A") == 0) return SEYRUSEFER_HID_KEY_A;
+        if (strcasecmp(key, "KEY_B") == 0) return SEYRUSEFER_HID_KEY_B;
+        if (strcasecmp(key, "KEY_C") == 0) return SEYRUSEFER_HID_KEY_C;
+        if (strcasecmp(key, "KEY_D") == 0) return SEYRUSEFER_HID_KEY_D;
+        if (strcasecmp(key, "KEY_E") == 0) return SEYRUSEFER_HID_KEY_E;
+        if (strcasecmp(key, "KEY_F") == 0) return SEYRUSEFER_HID_KEY_F;
+        if (strcasecmp(key, "KEY_G") == 0) return SEYRUSEFER_HID_KEY_G;
+        if (strcasecmp(key, "KEY_H") == 0) return SEYRUSEFER_HID_KEY_H;
+        if (strcasecmp(key, "KEY_I") == 0) return SEYRUSEFER_HID_KEY_I;
+        if (strcasecmp(key, "KEY_J") == 0) return SEYRUSEFER_HID_KEY_J;
+        if (strcasecmp(key, "KEY_K") == 0) return SEYRUSEFER_HID_KEY_K;
+        if (strcasecmp(key, "KEY_L") == 0) return SEYRUSEFER_HID_KEY_L;
+        if (strcasecmp(key, "KEY_M") == 0) return SEYRUSEFER_HID_KEY_M;
+        if (strcasecmp(key, "KEY_N") == 0) return SEYRUSEFER_HID_KEY_N;
+        if (strcasecmp(key, "KEY_O") == 0) return SEYRUSEFER_HID_KEY_O;
+        if (strcasecmp(key, "KEY_P") == 0) return SEYRUSEFER_HID_KEY_P;
+        if (strcasecmp(key, "KEY_Q") == 0) return SEYRUSEFER_HID_KEY_Q;
+        if (strcasecmp(key, "KEY_R") == 0) return SEYRUSEFER_HID_KEY_R;
+        if (strcasecmp(key, "KEY_S") == 0) return SEYRUSEFER_HID_KEY_S;
+        if (strcasecmp(key, "KEY_T") == 0) return SEYRUSEFER_HID_KEY_T;
+        if (strcasecmp(key, "KEY_U") == 0) return SEYRUSEFER_HID_KEY_U;
+        if (strcasecmp(key, "KEY_V") == 0) return SEYRUSEFER_HID_KEY_V;
+        if (strcasecmp(key, "KEY_W") == 0) return SEYRUSEFER_HID_KEY_W;
+        if (strcasecmp(key, "KEY_X") == 0) return SEYRUSEFER_HID_KEY_X;
+        if (strcasecmp(key, "KEY_Y") == 0) return SEYRUSEFER_HID_KEY_Y;
+        if (strcasecmp(key, "KEY_Z") == 0) return SEYRUSEFER_HID_KEY_Z;
+        if (strcasecmp(key, "KEY_1") == 0) return SEYRUSEFER_HID_KEY_1;
+        if (strcasecmp(key, "KEY_2") == 0) return SEYRUSEFER_HID_KEY_2;
+        if (strcasecmp(key, "KEY_3") == 0) return SEYRUSEFER_HID_KEY_3;
+        if (strcasecmp(key, "KEY_4") == 0) return SEYRUSEFER_HID_KEY_4;
+        if (strcasecmp(key, "KEY_5") == 0) return SEYRUSEFER_HID_KEY_5;
+        if (strcasecmp(key, "KEY_6") == 0) return SEYRUSEFER_HID_KEY_6;
+        if (strcasecmp(key, "KEY_7") == 0) return SEYRUSEFER_HID_KEY_7;
+        if (strcasecmp(key, "KEY_8") == 0) return SEYRUSEFER_HID_KEY_8;
+        if (strcasecmp(key, "KEY_9") == 0) return SEYRUSEFER_HID_KEY_9;
+        if (strcasecmp(key, "KEY_0") == 0) return SEYRUSEFER_HID_KEY_0;
+        if (strcasecmp(key, "KEY_RETURN") == 0) return SEYRUSEFER_HID_KEY_RETURN;
+        if (strcasecmp(key, "KEY_ESCAPE") == 0) return SEYRUSEFER_HID_KEY_ESCAPE;
+        if (strcasecmp(key, "KEY_DELETE") == 0) return SEYRUSEFER_HID_KEY_DELETE;
+        if (strcasecmp(key, "KEY_TAB") == 0) return SEYRUSEFER_HID_KEY_TAB;
+        if (strcasecmp(key, "KEY_SPACEBAR") == 0) return SEYRUSEFER_HID_KEY_SPACEBAR;
+        if (strcasecmp(key, "KEY_MINUS") == 0) return SEYRUSEFER_HID_KEY_MINUS;
+        if (strcasecmp(key, "KEY_EQUAL") == 0) return SEYRUSEFER_HID_KEY_EQUAL;
+        if (strcasecmp(key, "KEY_LEFT_BRKT") == 0) return SEYRUSEFER_HID_KEY_LEFT_BRKT;
+        if (strcasecmp(key, "KEY_RIGHT_BRKT") == 0) return SEYRUSEFER_HID_KEY_RIGHT_BRKT;
+        if (strcasecmp(key, "KEY_BACK_SLASH") == 0) return SEYRUSEFER_HID_KEY_BACK_SLASH;
+        if (strcasecmp(key, "KEY_SEMI_COLON") == 0) return SEYRUSEFER_HID_KEY_SEMI_COLON;
+        if (strcasecmp(key, "KEY_SGL_QUOTE") == 0) return SEYRUSEFER_HID_KEY_SGL_QUOTE;
+        if (strcasecmp(key, "KEY_GRV_ACCENT") == 0) return SEYRUSEFER_HID_KEY_GRV_ACCENT;
+        if (strcasecmp(key, "KEY_COMMA") == 0) return SEYRUSEFER_HID_KEY_COMMA;
+        if (strcasecmp(key, "KEY_DOT") == 0) return SEYRUSEFER_HID_KEY_DOT;
+        if (strcasecmp(key, "KEY_FWD_SLASH") == 0) return SEYRUSEFER_HID_KEY_FWD_SLASH;
+        if (strcasecmp(key, "KEY_CAPS_LOCK") == 0) return SEYRUSEFER_HID_KEY_CAPS_LOCK;
+        if (strcasecmp(key, "KEY_F1") == 0) return SEYRUSEFER_HID_KEY_F1;
+        if (strcasecmp(key, "KEY_F2") == 0) return SEYRUSEFER_HID_KEY_F2;
+        if (strcasecmp(key, "KEY_F3") == 0) return SEYRUSEFER_HID_KEY_F3;
+        if (strcasecmp(key, "KEY_F4") == 0) return SEYRUSEFER_HID_KEY_F4;
+        if (strcasecmp(key, "KEY_F5") == 0) return SEYRUSEFER_HID_KEY_F5;
+        if (strcasecmp(key, "KEY_F6") == 0) return SEYRUSEFER_HID_KEY_F6;
+        if (strcasecmp(key, "KEY_F7") == 0) return SEYRUSEFER_HID_KEY_F7;
+        if (strcasecmp(key, "KEY_F8") == 0) return SEYRUSEFER_HID_KEY_F8;
+        if (strcasecmp(key, "KEY_F9") == 0) return SEYRUSEFER_HID_KEY_F9;
+        if (strcasecmp(key, "KEY_F10") == 0) return SEYRUSEFER_HID_KEY_F10;
+        if (strcasecmp(key, "KEY_F11") == 0) return SEYRUSEFER_HID_KEY_F11;
+        if (strcasecmp(key, "KEY_F12") == 0) return SEYRUSEFER_HID_KEY_F12;
+        if (strcasecmp(key, "KEY_PRNT_SCREEN") == 0) return SEYRUSEFER_HID_KEY_PRNT_SCREEN;
+        if (strcasecmp(key, "KEY_SCROLL_LOCK") == 0) return SEYRUSEFER_HID_KEY_SCROLL_LOCK;
+        if (strcasecmp(key, "KEY_PAUSE") == 0) return SEYRUSEFER_HID_KEY_PAUSE;
+        if (strcasecmp(key, "KEY_INSERT") == 0) return SEYRUSEFER_HID_KEY_INSERT;
+        if (strcasecmp(key, "KEY_HOME") == 0) return SEYRUSEFER_HID_KEY_HOME;
+        if (strcasecmp(key, "KEY_PAGE_UP") == 0) return SEYRUSEFER_HID_KEY_PAGE_UP;
+        if (strcasecmp(key, "KEY_DELETE_FWD") == 0) return SEYRUSEFER_HID_KEY_DELETE_FWD;
+        if (strcasecmp(key, "KEY_END") == 0) return SEYRUSEFER_HID_KEY_END;
+        if (strcasecmp(key, "KEY_PAGE_DOWN") == 0) return SEYRUSEFER_HID_KEY_PAGE_DOWN;
+        if (strcasecmp(key, "KEY_RIGHT_ARROW") == 0) return SEYRUSEFER_HID_KEY_RIGHT_ARROW;
+        if (strcasecmp(key, "KEY_LEFT_ARROW") == 0) return SEYRUSEFER_HID_KEY_LEFT_ARROW;
+        if (strcasecmp(key, "KEY_DOWN_ARROW") == 0) return SEYRUSEFER_HID_KEY_DOWN_ARROW;
+        if (strcasecmp(key, "KEY_UP_ARROW") == 0) return SEYRUSEFER_HID_KEY_UP_ARROW;
+        if (strcasecmp(key, "KEY_NUM_LOCK") == 0) return SEYRUSEFER_HID_KEY_NUM_LOCK;
+        if (strcasecmp(key, "KEY_DIVIDE") == 0) return SEYRUSEFER_HID_KEY_DIVIDE;
+        if (strcasecmp(key, "KEY_MULTIPLY") == 0) return SEYRUSEFER_HID_KEY_MULTIPLY;
+        if (strcasecmp(key, "KEY_SUBTRACT") == 0) return SEYRUSEFER_HID_KEY_SUBTRACT;
+        if (strcasecmp(key, "KEY_ADD") == 0) return SEYRUSEFER_HID_KEY_ADD;
+        if (strcasecmp(key, "KEY_ENTER") == 0) return SEYRUSEFER_HID_KEY_ENTER;
+        if (strcasecmp(key, "KEYPAD_1") == 0) return SEYRUSEFER_HID_KEYPAD_1;
+        if (strcasecmp(key, "KEYPAD_2") == 0) return SEYRUSEFER_HID_KEYPAD_2;
+        if (strcasecmp(key, "KEYPAD_3") == 0) return SEYRUSEFER_HID_KEYPAD_3;
+        if (strcasecmp(key, "KEYPAD_4") == 0) return SEYRUSEFER_HID_KEYPAD_4;
+        if (strcasecmp(key, "KEYPAD_5") == 0) return SEYRUSEFER_HID_KEYPAD_5;
+        if (strcasecmp(key, "KEYPAD_6") == 0) return SEYRUSEFER_HID_KEYPAD_6;
+        if (strcasecmp(key, "KEYPAD_7") == 0) return SEYRUSEFER_HID_KEYPAD_7;
+        if (strcasecmp(key, "KEYPAD_8") == 0) return SEYRUSEFER_HID_KEYPAD_8;
+        if (strcasecmp(key, "KEYPAD_9") == 0) return SEYRUSEFER_HID_KEYPAD_9;
+        if (strcasecmp(key, "KEYPAD_0") == 0) return SEYRUSEFER_HID_KEYPAD_0;
+        if (strcasecmp(key, "KEYPAD_DOT") == 0) return SEYRUSEFER_HID_KEYPAD_DOT;
+        if (strcasecmp(key, "KEY_MUTE") == 0) return SEYRUSEFER_HID_KEY_MUTE;
+        if (strcasecmp(key, "KEY_VOLUME_UP") == 0) return SEYRUSEFER_HID_KEY_VOLUME_UP;
+        if (strcasecmp(key, "KEY_VOLUME_DOWN") == 0) return SEYRUSEFER_HID_KEY_VOLUME_DOWN;
+        if (strcasecmp(key, "KEY_LEFT_CTRL") == 0) return SEYRUSEFER_HID_KEY_LEFT_CTRL;
+        if (strcasecmp(key, "KEY_LEFT_SHIFT") == 0) return SEYRUSEFER_HID_KEY_LEFT_SHIFT;
+        if (strcasecmp(key, "KEY_LEFT_ALT") == 0) return SEYRUSEFER_HID_KEY_LEFT_ALT;
+        if (strcasecmp(key, "KEY_LEFT_GUI") == 0) return SEYRUSEFER_HID_KEY_LEFT_GUI;
+        if (strcasecmp(key, "KEY_RIGHT_CTRL") == 0) return SEYRUSEFER_HID_KEY_RIGHT_CTRL;
+        if (strcasecmp(key, "KEY_RIGHT_SHIFT") == 0) return SEYRUSEFER_HID_KEY_RIGHT_SHIFT;
+        if (strcasecmp(key, "KEY_RIGHT_ALT") == 0) return SEYRUSEFER_HID_KEY_RIGHT_ALT;
+        if (strcasecmp(key, "KEY_RIGHT_GUI") == 0) return SEYRUSEFER_HID_KEY_RIGHT_GUI;
+        if (strcasecmp(key, "MOUSE_LEFT") == 0) return SEYRUSEFER_HID_MOUSE_LEFT;
+        if (strcasecmp(key, "MOUSE_MIDDLE") == 0) return SEYRUSEFER_HID_MOUSE_MIDDLE;
+        if (strcasecmp(key, "MOUSE_RIGHT") == 0) return SEYRUSEFER_HID_MOUSE_RIGHT;
+        if (strcasecmp(key, "CONSUMER_POWER") == 0) return SEYRUSEFER_HID_CONSUMER_POWER;
+        if (strcasecmp(key, "CONSUMER_RESET") == 0) return SEYRUSEFER_HID_CONSUMER_RESET;
+        if (strcasecmp(key, "CONSUMER_SLEEP") == 0) return SEYRUSEFER_HID_CONSUMER_SLEEP;
+        if (strcasecmp(key, "CONSUMER_MENU") == 0) return SEYRUSEFER_HID_CONSUMER_MENU;
+        if (strcasecmp(key, "CONSUMER_SELECTION") == 0) return SEYRUSEFER_HID_CONSUMER_SELECTION;
+        if (strcasecmp(key, "CONSUMER_ASSIGN_SEL") == 0) return SEYRUSEFER_HID_CONSUMER_ASSIGN_SEL;
+        if (strcasecmp(key, "CONSUMER_MODE_STEP") == 0) return SEYRUSEFER_HID_CONSUMER_MODE_STEP;
+        if (strcasecmp(key, "CONSUMER_RECALL_LAST") == 0) return SEYRUSEFER_HID_CONSUMER_RECALL_LAST;
+        if (strcasecmp(key, "CONSUMER_QUIT") == 0) return SEYRUSEFER_HID_CONSUMER_QUIT;
+        if (strcasecmp(key, "CONSUMER_HELP") == 0) return SEYRUSEFER_HID_CONSUMER_HELP;
+        if (strcasecmp(key, "CONSUMER_CHANNEL_UP") == 0) return SEYRUSEFER_HID_CONSUMER_CHANNEL_UP;
+        if (strcasecmp(key, "CONSUMER_CHANNEL_DOWN") == 0) return SEYRUSEFER_HID_CONSUMER_CHANNEL_DOWN;
+        if (strcasecmp(key, "CONSUMER_PLAY") == 0) return SEYRUSEFER_HID_CONSUMER_PLAY;
+        if (strcasecmp(key, "CONSUMER_PAUSE") == 0) return SEYRUSEFER_HID_CONSUMER_PAUSE;
+        if (strcasecmp(key, "CONSUMER_RECORD") == 0) return SEYRUSEFER_HID_CONSUMER_RECORD;
+        if (strcasecmp(key, "CONSUMER_FAST_FORWARD") == 0) return SEYRUSEFER_HID_CONSUMER_FAST_FORWARD;
+        if (strcasecmp(key, "CONSUMER_REWIND") == 0) return SEYRUSEFER_HID_CONSUMER_REWIND;
+        if (strcasecmp(key, "CONSUMER_SCAN_NEXT_TRK") == 0) return SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
+        if (strcasecmp(key, "CONSUMER_SCAN_PREV_TRK") == 0) return SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK;
+        if (strcasecmp(key, "CONSUMER_STOP") == 0) return SEYRUSEFER_HID_CONSUMER_STOP;
+        if (strcasecmp(key, "CONSUMER_EJECT") == 0) return SEYRUSEFER_HID_CONSUMER_EJECT;
+        if (strcasecmp(key, "CONSUMER_RANDOM_PLAY") == 0) return SEYRUSEFER_HID_CONSUMER_RANDOM_PLAY;
+        if (strcasecmp(key, "CONSUMER_SELECT_DISC") == 0) return SEYRUSEFER_HID_CONSUMER_SELECT_DISC;
+        if (strcasecmp(key, "CONSUMER_ENTER_DISC") == 0) return SEYRUSEFER_HID_CONSUMER_ENTER_DISC;
+        if (strcasecmp(key, "CONSUMER_REPEAT") == 0) return SEYRUSEFER_HID_CONSUMER_REPEAT;
+        if (strcasecmp(key, "CONSUMER_STOP_EJECT") == 0) return SEYRUSEFER_HID_CONSUMER_STOP_EJECT;
+        if (strcasecmp(key, "CONSUMER_PLAY_PAUSE") == 0) return SEYRUSEFER_HID_CONSUMER_PLAY_PAUSE;
+        if (strcasecmp(key, "CONSUMER_PLAY_SKIP") == 0) return SEYRUSEFER_HID_CONSUMER_PLAY_SKIP;
+        if (strcasecmp(key, "CONSUMER_VOLUME") == 0) return SEYRUSEFER_HID_CONSUMER_VOLUME;
+        if (strcasecmp(key, "CONSUMER_BALANCE") == 0) return SEYRUSEFER_HID_CONSUMER_BALANCE;
+        if (strcasecmp(key, "CONSUMER_MUTE") == 0) return SEYRUSEFER_HID_CONSUMER_MUTE;
+        if (strcasecmp(key, "CONSUMER_BASS") == 0) return SEYRUSEFER_HID_CONSUMER_BASS;
+        if (strcasecmp(key, "CONSUMER_VOLUME_UP") == 0) return SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
+        if (strcasecmp(key, "CONSUMER_VOLUME_DOWN") == 0) return SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
+        return SEYRUSEFER_HID_KEY_INVALID;
 }

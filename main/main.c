@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "sdkconfig.h"
 #include "esp_event.h"
+#include "esp_task_wdt.h"
 
 #define SEYRUSEFER_DEBUG_TAG "main"
 #include "debug.h"
@@ -12,6 +13,7 @@ void app_main (void)
 {
         int rc;
 
+        int iteration;
         struct seyrusefer *seyrusefer;
         struct seyrusefer_init_options seyrusefer_init_options;
 
@@ -34,6 +36,19 @@ void app_main (void)
         if (seyrusefer == NULL) {
                 seyrusefer_errorf("can not create seyrusefer");
                 goto bail;
+        }
+        iteration = seyrusefer_get_iteration(seyrusefer);
+
+        esp_task_wdt_add(NULL);
+        esp_task_wdt_status(NULL);
+        while (1) {
+                int i;
+                i = seyrusefer_get_iteration(seyrusefer);
+                if (i != iteration) {
+                        iteration = i;
+                        esp_task_wdt_reset();
+                }
+                vTaskDelay(pdMS_TO_TICKS(250));
         }
 
         return;

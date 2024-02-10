@@ -20,7 +20,7 @@
 #include "settings.h"
 #include "seyrusefer.h"
 
-#define SEYRUSEFER_VERSION                              "seyrusefer-0.0.0.bin"
+#define SEYRUSEFER_VERSION                              "seyrusefer-1.0.0.bin"
 
 enum {
         SEYRUSEFER_STATE_NONE,
@@ -38,6 +38,8 @@ enum {
 };
 
 struct seyrusefer {
+        int iteration;
+
         int state;
         int pstate;
         int restart;
@@ -135,6 +137,13 @@ bail:   return -1;
 static int seyrusefer_set_state_running_actual (struct seyrusefer *seyrusefer)
 {
         int rc;
+
+#if 1
+        if (seyrusefer->pstate == SEYRUSEFER_STATE_WIFI_SETUP) {
+                seyrusefer_platform_restart();
+                return 0;
+        }
+#endif
 
         seyrusefer->connected  = 0;
         seyrusefer->pconnected = -1;
@@ -616,6 +625,8 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
         int buttons_released;
         int buttons_active;
 
+        seyrusefer->iteration += 1;
+
         now = seyrusefer_timer_get_time(seyrusefer->timer);
 
         buttons_pressed  = 0;
@@ -829,7 +840,17 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
 bail:   return -1;
 }
 
-const struct seyrusefer_settings * seyrusefer_settings_get (struct seyrusefer *seyrusefer)
+int seyrusefer_get_iteration (struct seyrusefer *seyrusefer)
+{
+        if (seyrusefer == NULL) {
+                seyrusefer_errorf("seyrusefer is invalid");
+                goto bail;
+        }
+        return seyrusefer->iteration;
+bail:   return -1;
+}
+
+const struct seyrusefer_settings * seyrusefer_get_settings (struct seyrusefer *seyrusefer)
 {
         if (seyrusefer == NULL) {
                 seyrusefer_errorf("seyrusefer is invalid");

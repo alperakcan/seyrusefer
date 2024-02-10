@@ -3,6 +3,7 @@ struct seyrusefer_config;
 struct seyrusefer_hid;
 
 enum {
+        SEYRUSEFER_HID_KEY_INVALID,
         SEYRUSEFER_HID_KEY_RESERVED,
         SEYRUSEFER_HID_KEY_A,
         SEYRUSEFER_HID_KEY_B,

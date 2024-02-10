@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "platform.h"
 #include "config.h"
+#include "hid.h"
 #include "settings.h"
 #include "httpd.h"
 
@@ -23,7 +24,7 @@ struct seyrusefer_httpd {
         httpd_handle_t server;
 };
 
-static esp_err_t api_hello (httpd_req_t *req)
+static esp_err_t system_version (httpd_req_t *req)
 {
         char *resp;
         struct seyrusefer_httpd *httpd = req->user_ctx;
@@ -32,7 +33,7 @@ static esp_err_t api_hello (httpd_req_t *req)
 
         resp = NULL;
 
-        asprintf(&resp, "seyrusefer\n");
+        asprintf(&resp, "seyrusefer-1.0.0.bin");
         httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
         free(resp);
 
@@ -155,6 +156,151 @@ bail:   httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Internal Serv
         return ESP_FAIL;
 }
 
+static esp_err_t api_settings_set (httpd_req_t *req)
+{
+        int r;
+        char *buffer;
+        cJSON *root;
+        cJSON *mode;
+        cJSON *modes;
+        cJSON *button;
+        cJSON *buttons;
+        cJSON *key;
+
+        int m;
+        int b;
+        int rc;
+        struct seyrusefer_settings settings;
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        root = NULL;
+        buffer = NULL;
+
+        buffer = malloc(req->content_len + 1);
+        if (buffer == NULL) {
+                seyrusefer_errorf("can not allocate memory");
+                goto bail;
+        }
+        memset(buffer, 0, req->content_len + 1);
+
+        r = 0;
+        while (r < req->content_len) {
+                rc = httpd_req_recv(req, buffer + r, req->content_len - r);
+                if (rc <= 0) {
+                        seyrusefer_errorf("httpd_req_recv failed, rc: %d, r: %d / %d", rc, r, req->content_len);
+                        goto bail;
+                }
+                r += rc;
+        }
+        if (r != req->content_len) {
+                seyrusefer_errorf("httpd_req_recv failed, r: %d != %d", r, req->content_len);
+                goto bail;
+        }
+
+        memset(&settings, 0, sizeof(struct seyrusefer_settings));
+        settings.magic = SEYRUSEFER_SETTINGS_MAGIC;
+
+        root = cJSON_Parse(buffer);
+        if (root == NULL) {
+                seyrusefer_errorf("can not parse buffer");
+                goto bail;
+        }
+
+        mode = cJSON_GetObjectItem(root, "mode");
+        if (mode == NULL || !cJSON_IsString(mode)) {
+                seyrusefer_errorf("mode is invalid");
+                goto bail;
+        }
+        settings.mode = seyrusefer_settings_mode_from_string(mode->valuestring);
+        if (settings.mode == SEYRUSEFER_SETTINGS_MODE_INVALID) {
+                seyrusefer_errorf("mode: %s is invalid", mode->valuestring);
+                goto bail;
+        }
+
+        modes = cJSON_GetObjectItem(root, "modes");
+        if (modes == NULL || !cJSON_IsArray(modes)) {
+                seyrusefer_errorf("modes is invalid");
+                goto bail;
+        }
+
+        m = 0;
+        cJSON_ArrayForEach(mode, modes) {
+                if (m >= SEYRUSEFER_SETTINGS_MODE_COUNT) {
+                        seyrusefer_errorf("settings is invalid");
+                        goto bail;
+                }
+
+                if (mode == NULL || !cJSON_IsObject(mode)) {
+                        seyrusefer_errorf("mode is invalid");
+                        goto bail;
+                }
+                buttons = cJSON_GetObjectItem(mode, "buttons");
+                if (buttons == NULL || !cJSON_IsArray(buttons)) {
+                        seyrusefer_errorf("buttons is invalid");
+                        goto bail;
+                }
+
+                b = 0;
+                cJSON_ArrayForEach(button, buttons) {
+                        if (b >= SEYRUSEFER_SETTINGS_BUTTON_COUNT) {
+                                seyrusefer_errorf("settings is invalid");
+                                goto bail;
+                        }
+
+                        if (button == NULL || !cJSON_IsObject(button)) {
+                                seyrusefer_errorf("button is invalid");
+                                goto bail;
+                        }
+                        key = cJSON_GetObjectItem(button, "key");
+                        if (key == NULL || !cJSON_IsString(key)) {
+                                seyrusefer_errorf("key is invalid");
+                                goto bail;
+                        }
+
+                        settings.modes[m].buttons[b].key = seyrusefer_settings_key_from_string(key->valuestring);
+                        if (settings.modes[m].buttons[b].key == SEYRUSEFER_HID_KEY_INVALID) {
+                                seyrusefer_errorf("key: %s is invalid", key->valuestring);
+                                goto bail;
+                        }
+
+                        b += 1;
+                }
+                if (b != SEYRUSEFER_SETTINGS_BUTTON_COUNT) {
+                        seyrusefer_errorf("settings is invalid");
+                        goto bail;
+                }
+
+                m += 1;
+        }
+        if (m != SEYRUSEFER_SETTINGS_MODE_COUNT) {
+                seyrusefer_errorf("settings is invalid");
+                goto bail;
+        }
+
+        seyrusefer_infof("writing settings to config");
+        rc = seyrusefer_config_set_blob(httpd->config, "settings", &settings, sizeof(struct seyrusefer_settings));
+        if (rc != 0) {
+                seyrusefer_errorf("can not set config");
+                goto bail;
+        }
+
+        cJSON_Delete(root);
+        free(buffer);
+
+        httpd_resp_send(req, "{}", 2);
+        return ESP_OK;
+bail:   httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Internal Server Error");
+        if (buffer != NULL) {
+                free(buffer);
+        }
+        if (root != NULL) {
+                cJSON_Delete(root);
+        }
+        return ESP_FAIL;
+}
+
 static esp_err_t www_index_html (httpd_req_t *req)
 {
         extern const unsigned char www_index_html_start[] asm("_binary_index_html_start");
@@ -253,9 +399,9 @@ static esp_err_t www_popper_min_js (httpd_req_t *req)
 
 static httpd_uri_t *apis[] = {
         &(httpd_uri_t) {
-                .uri      = "/api/hello",
+                .uri      = "/api/system/version",
                 .method   = HTTP_GET,
-                .handler  = api_hello,
+                .handler  = system_version,
                 .user_ctx = NULL
         },
         &(httpd_uri_t) {
@@ -268,6 +414,12 @@ static httpd_uri_t *apis[] = {
                 .uri      = "/api/settings/get",
                 .method   = HTTP_GET,
                 .handler  = api_settings_get,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/api/settings/set",
+                .method   = HTTP_POST,
+                .handler  = api_settings_set,
                 .user_ctx = NULL
         },
         &(httpd_uri_t) {
