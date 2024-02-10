@@ -1,7 +1,7 @@
 
 # seyrusefer
 
-Controlling unit designed especially for adventure bikes
+Controlling unit designed especially for adventure bikes.
 
 # 1. build
 

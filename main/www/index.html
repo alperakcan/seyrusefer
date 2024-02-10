@@ -19,30 +19,58 @@
                 }
 
                 function init () {
-                        let apiUrl                              = `http://${window.location.hostname}:${window.location.port}/api`;
-                        let apiSettingsGet                      = "/settings/get";
-                        let apiSettingsSet                      = "/settings/set";
-                        let apiTimeout                          = 10 * 1000;
+                        let apiUrl                      = `http://${window.location.hostname}:${window.location.port}/api`;
+                        let apiSettingsGet              = "/settings/get";
+                        let apiSettingsSet              = "/settings/set";
+                        let apiTimeout                  = 10 * 1000;
 
-                        let elementSeyrusefersLink              = document.getElementById("elementSeyrusefersLink");
-                        let elementSeyruseferLink               = document.getElementById("elementSeyruseferLink");
-                        let elementCommandSeperator             = document.getElementById("elementCommandSeperator");
-                        let elementCommandName                  = document.getElementById("elementCommandName");
-                        let elementSeyruseferId                 = document.getElementById("elementSeyruseferId");
+                        let elementSeyrusefersLink      = document.getElementById("elementSeyrusefersLink");
+                        let elementSeyruseferLink       = document.getElementById("elementSeyruseferLink");
+                        let elementCommandSeperator     = document.getElementById("elementCommandSeperator");
+                        let elementCommandName          = document.getElementById("elementCommandName");
+                        let elementSeyruseferId         = document.getElementById("elementSeyruseferId");
 
-                        let elementSeyruseferDiv                = document.getElementById("elementSeyruseferDiv");
+                        let elementSeyruseferDiv        = document.getElementById("elementSeyruseferDiv");
 
-                        let elementSettingsDiv                  = document.getElementById("elementSettingsDiv");
-                        let elementSettingsLink                 = document.getElementById("elementSettingsLink");
-                        let elementSettingsResultDiv            = document.getElementById("elementSettingsResultDiv");
+                        let elementSettingsDiv          = document.getElementById("elementSettingsDiv");
+                        let elementSettingsLink         = document.getElementById("elementSettingsLink");
+                        let elementSettingsResultDiv    = document.getElementById("elementSettingsResultDiv");
+
+                        let elementFirmwareDiv          = document.getElementById("elementFirmwareDiv");
+                        let elementFirmwareLink         = document.getElementById("elementFirmwareLink");
+                        let elementFirmwareResultDiv    = document.getElementById("elementFirmwareResultDiv");
+
+                        let elementRestoreDiv           = document.getElementById("elementRestoreDiv");
+                        let elementRestoreLink          = document.getElementById("elementRestoreLink");
+                        let elementRestoreResultDiv     = document.getElementById("elementRestoreResultDiv");
+
+                        let elementRestartDiv           = document.getElementById("elementRestartDiv");
+                        let elementRestartLink          = document.getElementById("elementRestartLink");
+                        let elementRestartResultDiv     = document.getElementById("elementRestartResultDiv");
+
+                        let elementAboutDiv             = document.getElementById("elementAboutDiv");
+                        let elementAboutLink            = document.getElementById("elementAboutLink");
+                        let elementAboutResultDiv       = document.getElementById("elementAboutResultDiv");
 
                         elementsReset = function () {
                                 elementSeyruseferDiv.style.display      = "none";
-                                elementSettingsDiv.style.display        = "none";
                                 elementCommandSeperator.innerHTML       = "";
                                 elementCommandName.innerHTML            = "";
 
+                                elementSettingsDiv.style.display        = "none";
                                 elementSettingsResultDiv.innerHTML      = "";
+
+                                elementFirmwareDiv.style.display        = "none";
+                                elementFirmwareResultDiv.innerHTML      = "";
+
+                                elementRestoreDiv.style.display         = "none";
+                                elementRestoreResultDiv.innerHTML       = "";
+
+                                elementRestartDiv.style.display         = "none";
+                                elementRestartResultDiv.innerHTML       = "";
+
+                                elementAboutDiv.style.display           = "none";
+                                elementAboutResultDiv.innerHTML         = "";
                         }
 
                         elementSeyruseferLink.onclick = function () {
@@ -58,6 +86,38 @@
                                 elementCommandSeperator.innerHTML       = "/";
                                 elementCommandName.innerHTML            = "Settings";
                                 elementSettingsUpdate(0);
+                        }
+
+                        elementFirmwareLink.onclick = function () {
+                                elementsReset();
+                                elementFirmwareDiv.style.display        = "block";
+                                elementCommandSeperator.innerHTML       = "/";
+                                elementCommandName.innerHTML            = "Firmware";
+                                elementFirmwareUpdate();
+                        }
+
+                        elementRestoreLink.onclick = function () {
+                                elementsReset();
+                                elementRestoreDiv.style.display        = "block";
+                                elementCommandSeperator.innerHTML       = "/";
+                                elementCommandName.innerHTML            = "Restore";
+                                elementRestoreUpdate();
+                        }
+
+                        elementRestartLink.onclick = function () {
+                                elementsReset();
+                                elementRestartDiv.style.display        = "block";
+                                elementCommandSeperator.innerHTML       = "/";
+                                elementCommandName.innerHTML            = "Restart";
+                                elementRestartUpdate();
+                        }
+
+                        elementAboutLink.onclick = function () {
+                                elementsReset();
+                                elementAboutDiv.style.display        = "block";
+                                elementCommandSeperator.innerHTML       = "/";
+                                elementCommandName.innerHTML            = "About";
+                                elementAboutUpdate();
                         }
 
                         elementSettingsChanged = function () {
@@ -418,6 +478,18 @@
                                 });
                         }
 
+                        elementFirmwareUpdate = function () {
+                        }
+
+                        elementRestoreUpdate = function () {
+                        }
+
+                        elementRestartUpdate = function () {
+                        }
+
+                        elementAboutUpdate = function () {
+                        }
+
                         elementsReset();
                         elementSeyruseferDiv.style.display = "block";
 
@@ -460,7 +532,15 @@
                                         </a>
                                 </div>
                                 <div class="list-group">
-                                        <a id="elementRestartsLink" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <a id="elementRestoreLink" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                        <h5 class="mb-1">Restore</h5>
+                                                </div>
+                                                <p class="mb-1">Restore to defaults.</p>
+                                        </a>
+                                </div>
+                                <div class="list-group">
+                                        <a id="elementRestartLink" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                                 <div class="d-flex w-100 justify-content-between">
                                                         <h5 class="mb-1">Restart</h5>
                                                 </div>
@@ -468,7 +548,7 @@
                                         </a>
                                 </div>
                                 <div class="list-group">
-                                        <a id="elementAboutsLink" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <a id="elementAboutLink" href="#" class="list-group-item list-group-item-action flex-column align-items-start">
                                                 <div class="d-flex w-100 justify-content-between">
                                                         <h5 class="mb-1">About</h5>
                                                 </div>
@@ -480,6 +560,27 @@
                 <div id="elementSettingsDiv">
                         <p>
                                 <div id="elementSettingsResultDiv">
+
+                                </div>
+                        </p>
+                </div>
+                <div id="elementFirmwareDiv">
+                        <p>
+                                <div id="elementFirmwareResultDiv">
+
+                                </div>
+                        </p>
+                </div>
+                <div id="elementRestoreDiv">
+                        <p>
+                                <div id="elementRestoreResultDiv">
+
+                                </div>
+                        </p>
+                </div>
+                <div id="elementRestartDiv">
+                        <p>
+                                <div id="elementRestartResultDiv">
 
                                 </div>
                         </p>
