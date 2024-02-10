@@ -357,10 +357,13 @@ char * seyrusefer_config_get_string (struct seyrusefer_config *config, const cha
 {
         char *tmp;
         tmp = seyrusefer_config_get(config, key);
-        if (tmp == NULL) {
+        if (tmp != NULL) {
+                return tmp;
+        }
+        if (value != NULL) {
                 return strdup(value);
         }
-        return tmp;
+        return NULL;
 }
 
 int seyrusefer_config_get_blob (struct seyrusefer_config *config, const char *key, void **value, int *length)
