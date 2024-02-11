@@ -19,9 +19,12 @@
                 }
 
                 function init () {
+                        let wwwUrl                      = `http://${window.location.hostname}:${window.location.port}`;
                         let apiUrl                      = `http://${window.location.hostname}:${window.location.port}/api`;
                         let apiSettingsGet              = "/settings/get";
                         let apiSettingsSet              = "/settings/set";
+                        let apiSystemRestart            = "/system/restart";
+                        let apiSystemRestore            = "/system/restore";
                         let apiTimeout                  = 10 * 1000;
 
                         let elementSeyrusefersLink      = document.getElementById("elementSeyrusefersLink");
@@ -130,6 +133,8 @@
 
                                 settings = {};
                                 settings.mode = elementSettingsMode.value;
+                                settings.led = {};
+                                settings.led.brightness = document.getElementById(`elementSettingsLED:BRIGHTNESS`).value;
                                 settings.modes = [];
 
                                 for (m = 1; m <= 5; m++) {
@@ -198,6 +203,7 @@
 
                                         console.log("{0}{1}".format(apiUrl, apiSettingsGet));
                                         console.log("  mode                    : {0}".format(json.mode));
+                                        console.log("  led.brightness          : {0}".format(json.led.brightness));
                                         console.log("  modes[0].buttons[0].key : {0}".format(json.modes[0].buttons[0].key));
                                         console.log("  modes[0].buttons[1].key : {0}".format(json.modes[0].buttons[1].key));
                                         console.log("  modes[0].buttons[2].key : {0}".format(json.modes[0].buttons[2].key));
@@ -226,6 +232,8 @@
 
                                         let parameters = [
                                                 { "id": "MODE", "name": "MODE", "value": json.mode, "type": "mode" },
+                                                { "id": "LED", "name": "LED", "value": null, "type": "title" },
+                                                { "id": "LED:BRIGHTNESS", "name": "BRIGHTNESS", "value": json.led.brightness, "type": "brightness" },
                                                 { "id": "MODE_1", "name": "MODE_1", "value": null, "type": "title" },
                                                 { "id": "MODE_1:BUTTON_1", "name": "BUTTON_1", "value": json.modes[0].buttons[0].key, "type": "key" },
                                                 { "id": "MODE_1:BUTTON_2", "name": "BUTTON_2", "value": json.modes[0].buttons[1].key, "type": "key" },
@@ -270,10 +278,32 @@
                                                 h += `<td></td>`;
                                                 if (t == "key") {
                                                         h += `<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${n}</td>`;
+                                                } else if (t == "brightness") {
+                                                        h += `<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${n}</td>`;
                                                 } else {
                                                         h += `<td>${n}</td>`;
                                                 }
-                                                if (t == "mode") {
+                                                if (t == "brightness") {
+                                                        let values = [
+                                                                "20",
+                                                                "35",
+                                                                "50",
+                                                                "65",
+                                                                "80",
+                                                                "100"
+                                                        ];
+                                                        h += `<td>`;
+                                                        h += `<select id="elementSettings${d}" onchange="elementSettingsChanged()" class="form-select" aria-label="Default select example">`;
+                                                        for (j = 0; j < values.length; j++) {
+                                                                if (values[j] == v) {
+                                                                        h += `<option value="${values[j]}" selected>${values[j]}</option>`;
+                                                                } else {
+                                                                        h += `<option value="${values[j]}">${values[j]}</option>`;
+                                                                }
+                                                        }
+                                                        h += `</select>`;
+                                                        h += `</td>`;
+                                                } else if (t == "mode") {
                                                         let modes = [
                                                                 "MODE_1",
                                                                 "MODE_2",
@@ -473,7 +503,6 @@
                                         document.documentElement.scrollTop = scrollTop;
                                 }) .catch(e => {
                                         console.error(e);
-
                                         elementSettingsResultDiv.innerHTML = "Can not get settings, try again later.";
                                 });
                         }
@@ -482,12 +511,69 @@
                         }
 
                         elementRestoreUpdate = function () {
+                                elementRestoreResultDiv.innerHTML = "Sending restore command...";
+
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
+                                fetch(`${apiUrl}${apiSystemRestore}`, {
+                                        method: 'GET',
+                                        signal: controller.signal,
+                                        credentials: 'omit',
+                                        headers: {
+                                                'Accept': 'application/json'
+                                        }
+                                }).then(res => {
+                                        if (res.ok == true && res.status === 200) {
+                                                return res.json();
+                                        } else {
+                                                console.log("api call: {0}{1} failed, res: {2}, {3}".format(apiUrl, apiSystemRestore, res.ok, res.status))
+                                                throw new Error();
+                                        }
+                                }) .then(json => {
+                                        elementRestoreResultDiv.innerHTML = "Restore command succeeded.";
+                                        setTimeout(function() {
+                                                location.href = wwwUrl;
+                                        }, 1000);
+                                }) .catch(e => {
+                                        console.error(e);
+                                        elementRestoreResultDiv.innerHTML = "Can not send restore command, try again later.";
+                                });
                         }
 
                         elementRestartUpdate = function () {
+                                elementRestartResultDiv.innerHTML = "Sending restart command...";
+
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
+                                fetch(`${apiUrl}${apiSystemRestart}`, {
+                                        method: 'GET',
+                                        signal: controller.signal,
+                                        credentials: 'omit',
+                                        headers: {
+                                                'Accept': 'application/json'
+                                        }
+                                }).then(res => {
+                                        if (res.ok == true && res.status === 200) {
+                                                return res.json();
+                                        } else {
+                                                console.log("api call: {0}{1} failed, res: {2}, {3}".format(apiUrl, apiSystemRestart, res.ok, res.status))
+                                                throw new Error();
+                                        }
+                                }) .then(json => {
+                                        elementRestartResultDiv.innerHTML = "Successfully sent restart command. Device will restart in 2 seconds, Wifi connection will be lost.";
+                                }) .catch(e => {
+                                        console.error(e);
+                                        elementRestartResultDiv.innerHTML = "Can not send restart command, try again later.";
+                                });
                         }
 
                         elementAboutUpdate = function () {
+                                let h;
+                                h  = "<p>Controlling unit designed for adventure bikes.</p>"
+                                h += "<p>Controlling unit is a Bluetooth remote devices that lets you to " +
+                                     "operate various applications from handlebar without the need of " +
+                                     "touching the display.</p>";
+                                elementAboutResultDiv.innerHTML = h;
                         }
 
                         elementsReset();

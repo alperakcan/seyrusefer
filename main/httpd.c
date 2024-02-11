@@ -46,10 +46,23 @@ static esp_err_t api_system_restart (httpd_req_t *req)
 
         (void) httpd;
 
-        httpd_resp_send(req, NULL, 0);
+        httpd_resp_send(req, "{}", 2);
         vTaskDelay(pdMS_TO_TICKS(2000));
 
         seyrusefer_platform_restart();
+
+        return ESP_OK;
+}
+
+static esp_err_t api_system_restore (httpd_req_t *req)
+{
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        seyrusefer_config_clear(httpd->config);
+
+        httpd_resp_send(req, "{}", 2);
 
         return ESP_OK;
 }
@@ -70,6 +83,9 @@ static esp_err_t api_settings_get (httpd_req_t *req)
                 rc = asprintf(&resp,
                         "{" \
                         "  \"mode\":\"%s\"," \
+                        "  \"led\": {" \
+                        "    \"brightness\": \"%d\"" \
+                        "  }," \
                         "  \"modes\":[{" \
                         "    \"buttons\":[" \
                         "      { \"key\":\"%s\" }," \
@@ -113,6 +129,7 @@ static esp_err_t api_settings_get (httpd_req_t *req)
                         "   }]" \
                         "}",
                         seyrusefer_settings_mode_to_string(settings->mode),
+                        settings->led.brightness,
                         seyrusefer_settings_key_to_string(settings->modes[0].buttons[0].key),
                         seyrusefer_settings_key_to_string(settings->modes[0].buttons[1].key),
                         seyrusefer_settings_key_to_string(settings->modes[0].buttons[2].key),
@@ -162,6 +179,8 @@ static esp_err_t api_settings_set (httpd_req_t *req)
         char *buffer;
         cJSON *root;
         cJSON *mode;
+        cJSON *led;
+        cJSON *ledBrightness;
         cJSON *modes;
         cJSON *button;
         cJSON *buttons;
@@ -217,6 +236,21 @@ static esp_err_t api_settings_set (httpd_req_t *req)
         if (settings.mode == SEYRUSEFER_SETTINGS_MODE_INVALID) {
                 seyrusefer_errorf("mode: %s is invalid", mode->valuestring);
                 goto bail;
+        }
+
+        led = cJSON_GetObjectItem(root, "led");
+        if (led == NULL || !cJSON_IsObject(led)) {
+                seyrusefer_errorf("led is invalid");
+                goto bail;
+        }
+        ledBrightness = cJSON_GetObjectItem(led, "brightness");
+        if (ledBrightness == NULL || !cJSON_IsString(ledBrightness)) {
+                seyrusefer_errorf("ledBrightness is invalid");
+                goto bail;
+        }
+        settings.led.brightness = atoi(ledBrightness->valuestring);
+        if (settings.led.brightness < 20) {
+                settings.led.brightness = 20;
         }
 
         modes = cJSON_GetObjectItem(root, "modes");
@@ -408,6 +442,12 @@ static httpd_uri_t *apis[] = {
                 .uri      = "/api/system/restart",
                 .method   = HTTP_GET,
                 .handler  = api_system_restart,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/api/system/restore",
+                .method   = HTTP_GET,
+                .handler  = api_system_restore,
                 .user_ctx = NULL
         },
         &(httpd_uri_t) {

@@ -1,7 +1,10 @@
 
 # seyrusefer
 
-Controlling unit designed especially for adventure bikes.
+Controlling unit designed for adventure bikes.
+
+Controlling unit is a Bluetooth remote devices that lets you to operate
+various applications from handlebar without the need of touching the display.
 
 # 1. build
 

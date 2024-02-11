@@ -51,8 +51,6 @@ struct seyrusefer {
         int pconnected;
 
         int connect_wait_led_brightness;
-        int connect_wait_led_brightness_low;
-        int connect_wait_led_brightness_high;
         int connect_wait_led_brightness_op;
         int connect_wait_led_brightness_dur;
         int64_t connect_wait_led_brightness_tsms;
@@ -61,8 +59,6 @@ struct seyrusefer {
         int64_t mode_select_buttons_tsms;
 
         int mode_select_led_brightness;
-        int mode_select_led_brightness_low;
-        int mode_select_led_brightness_high;
         int mode_select_led_brightness_dur;
         int64_t mode_select_led_brightness_tsms;
 
@@ -70,8 +66,6 @@ struct seyrusefer {
         int64_t wifi_setup_buttons_tsms;
 
         int wifi_setup_led_brightness;
-        int wifi_setup_led_brightness_low;
-        int wifi_setup_led_brightness_high;
         int wifi_setup_led_brightness_dur;
         int64_t wifi_setup_led_brightness_tsms;
 
@@ -375,30 +369,24 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->connected   = 0;
         seyrusefer->pconnected  = -1;
 
-        seyrusefer->connect_wait_led_brightness_low     = 2;
-        seyrusefer->connect_wait_led_brightness_high    = 50;
         seyrusefer->connect_wait_led_brightness_op      = 1;
         seyrusefer->connect_wait_led_brightness_dur     = 20;
         seyrusefer->connect_wait_led_brightness_tsms    = 0;
-        seyrusefer->connect_wait_led_brightness         = seyrusefer->connect_wait_led_brightness_low;
+        seyrusefer->connect_wait_led_brightness         = 0;
 
         seyrusefer->mode_select_buttons_dur             = 2500;
         seyrusefer->mode_select_buttons_tsms            = 0;
 
-        seyrusefer->mode_select_led_brightness_low      = 2;
-        seyrusefer->mode_select_led_brightness_high     = 50;
         seyrusefer->mode_select_led_brightness_dur      = 250;
         seyrusefer->mode_select_led_brightness_tsms     = 0;
-        seyrusefer->mode_select_led_brightness          = seyrusefer->mode_select_led_brightness_low;
+        seyrusefer->mode_select_led_brightness          = 0;
 
         seyrusefer->wifi_setup_buttons_dur              = 2500;
         seyrusefer->wifi_setup_buttons_tsms             = 0;
 
-        seyrusefer->wifi_setup_led_brightness_low       = 2;
-        seyrusefer->wifi_setup_led_brightness_high      = 50;
         seyrusefer->wifi_setup_led_brightness_dur       = 250;
         seyrusefer->wifi_setup_led_brightness_tsms      = 0;
-        seyrusefer->wifi_setup_led_brightness           = seyrusefer->wifi_setup_led_brightness_low;
+        seyrusefer->wifi_setup_led_brightness           = 0;
 
         seyrusefer->stats_dur                           = 10000;
         seyrusefer->stats_tsms                          = 0;
@@ -412,6 +400,8 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
 
         seyrusefer->settings.magic = SEYRUSEFER_SETTINGS_MAGIC;
         seyrusefer->settings.mode  = SEYRUSEFER_SETTINGS_MODE_1;
+
+        seyrusefer->settings.led.brightness = 35;
 
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_KEY_C;
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_KEY_R;
@@ -469,10 +459,17 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
                                 goto bail;
                         }
                 } else if (rc == 1) {
-                        seyrusefer_infof("using settings from config");
                         if (length == sizeof(struct seyrusefer_settings) &&
                             settings->magic == seyrusefer->settings.magic) {
+                                seyrusefer_infof("using settings from config");
                                 memcpy(&seyrusefer->settings, settings, sizeof(struct seyrusefer_settings));
+                        } else {
+                                seyrusefer_infof("writing settings to config");
+                                rc = seyrusefer_config_set_blob(seyrusefer->config, "settings", &seyrusefer->settings, sizeof(struct seyrusefer_settings));
+                                if (rc != 0) {
+                                        seyrusefer_errorf("can not set config");
+                                        goto bail;
+                                }
                         }
                         free(settings);
                 } else {
@@ -676,7 +673,7 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 if (seyrusefer->connected != seyrusefer->pconnected) {
                         if (seyrusefer->connected == 0) {
                                 seyrusefer->connect_wait_led_brightness_tsms = now;
-                                seyrusefer->connect_wait_led_brightness      = seyrusefer->connect_wait_led_brightness_low;
+                                seyrusefer->connect_wait_led_brightness      = 0;
                                 seyrusefer_platform_set_led(seyrusefer->connect_wait_led_brightness);
                         } else if (seyrusefer->connected == 1) {
                                 seyrusefer_platform_set_led(0);
@@ -686,11 +683,11 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 if (seyrusefer->connected == 0) {
                         if (now < seyrusefer->connect_wait_led_brightness_tsms ||
                             now - seyrusefer->connect_wait_led_brightness_tsms >= seyrusefer->connect_wait_led_brightness_dur * 1000) {
-                                if (seyrusefer->connect_wait_led_brightness > seyrusefer->connect_wait_led_brightness_high) {
-                                        seyrusefer->connect_wait_led_brightness    = seyrusefer->connect_wait_led_brightness_high;
+                                if (seyrusefer->connect_wait_led_brightness > seyrusefer->settings.led.brightness) {
+                                        seyrusefer->connect_wait_led_brightness    = seyrusefer->settings.led.brightness;
                                         seyrusefer->connect_wait_led_brightness_op = -1;
-                                } else if (seyrusefer->connect_wait_led_brightness < seyrusefer->connect_wait_led_brightness_low) {
-                                        seyrusefer->connect_wait_led_brightness    = seyrusefer->connect_wait_led_brightness_low;
+                                } else if (seyrusefer->connect_wait_led_brightness < 2) {
+                                        seyrusefer->connect_wait_led_brightness    = 2;
                                         seyrusefer->connect_wait_led_brightness_op = +1;
                                 } else {
                                         seyrusefer->connect_wait_led_brightness += seyrusefer->connect_wait_led_brightness_op;
@@ -700,7 +697,7 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                         }
                 } else if (seyrusefer->connected == 1) {
                         if (seyrusefer->buttons != seyrusefer->pbuttons) {
-                                seyrusefer_platform_set_led(seyrusefer->buttons ? 50 : 0);
+                                seyrusefer_platform_set_led(seyrusefer->buttons ? seyrusefer->settings.led.brightness : 0);
 
 #if 0
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_1) {
@@ -772,12 +769,12 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
         } else if (seyrusefer->state == SEYRUSEFER_STATE_MODE_SELECT) {
                 if (now < seyrusefer->mode_select_led_brightness_tsms ||
                     now - seyrusefer->mode_select_led_brightness_tsms >= seyrusefer->mode_select_led_brightness_dur * 1000) {
-                        if (seyrusefer->mode_select_led_brightness == seyrusefer->mode_select_led_brightness_high) {
-                                seyrusefer->mode_select_led_brightness = seyrusefer->mode_select_led_brightness_low;
-                        } else if (seyrusefer->mode_select_led_brightness == seyrusefer->mode_select_led_brightness_low) {
-                                seyrusefer->mode_select_led_brightness = seyrusefer->mode_select_led_brightness_high;
+                        if (seyrusefer->mode_select_led_brightness == seyrusefer->settings.led.brightness) {
+                                seyrusefer->mode_select_led_brightness = 2;
+                        } else if (seyrusefer->mode_select_led_brightness == 2) {
+                                seyrusefer->mode_select_led_brightness = seyrusefer->settings.led.brightness;
                         } else {
-                                seyrusefer->mode_select_led_brightness = seyrusefer->mode_select_led_brightness_low;
+                                seyrusefer->mode_select_led_brightness = 2;
                         }
                         seyrusefer_platform_set_led(seyrusefer->mode_select_led_brightness);
                         seyrusefer->mode_select_led_brightness_tsms = now;
@@ -815,12 +812,12 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
         } else if (seyrusefer->state == SEYRUSEFER_STATE_WIFI_SETUP) {
                 if (now < seyrusefer->wifi_setup_led_brightness_tsms ||
                     now - seyrusefer->wifi_setup_led_brightness_tsms >= seyrusefer->wifi_setup_led_brightness_dur * 1000) {
-                        if (seyrusefer->wifi_setup_led_brightness == seyrusefer->wifi_setup_led_brightness_high) {
-                                seyrusefer->wifi_setup_led_brightness = seyrusefer->wifi_setup_led_brightness_low;
-                        } else if (seyrusefer->wifi_setup_led_brightness == seyrusefer->wifi_setup_led_brightness_low) {
-                                seyrusefer->wifi_setup_led_brightness = seyrusefer->wifi_setup_led_brightness_high;
+                        if (seyrusefer->wifi_setup_led_brightness == seyrusefer->settings.led.brightness) {
+                                seyrusefer->wifi_setup_led_brightness = 2;
+                        } else if (seyrusefer->wifi_setup_led_brightness == 2) {
+                                seyrusefer->wifi_setup_led_brightness = seyrusefer->settings.led.brightness;
                         } else {
-                                seyrusefer->wifi_setup_led_brightness = seyrusefer->wifi_setup_led_brightness_low;
+                                seyrusefer->wifi_setup_led_brightness = 2;
                         }
                         seyrusefer_platform_set_led(seyrusefer->wifi_setup_led_brightness);
                         seyrusefer->wifi_setup_led_brightness_tsms = now;
