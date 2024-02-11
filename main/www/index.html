@@ -530,10 +530,7 @@
                                                 throw new Error();
                                         }
                                 }) .then(json => {
-                                        elementRestoreResultDiv.innerHTML = "Restore command succeeded.";
-                                        setTimeout(function() {
-                                                location.href = wwwUrl;
-                                        }, 1000);
+                                        elementRestoreResultDiv.innerHTML = "Successfully sent restore command. Device will restart in 2 seconds, Wifi connection will be lost.";
                                 }) .catch(e => {
                                         console.error(e);
                                         elementRestoreResultDiv.innerHTML = "Can not send restore command, try again later.";

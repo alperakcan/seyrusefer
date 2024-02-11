@@ -60,9 +60,11 @@ static esp_err_t api_system_restore (httpd_req_t *req)
 
         (void) httpd;
 
-        seyrusefer_config_clear(httpd->config);
-
         httpd_resp_send(req, "{}", 2);
+        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        seyrusefer_config_clear(httpd->config);
+        seyrusefer_platform_restart();
 
         return ESP_OK;
 }
@@ -251,6 +253,9 @@ static esp_err_t api_settings_set (httpd_req_t *req)
         settings.led.brightness = atoi(ledBrightness->valuestring);
         if (settings.led.brightness < 20) {
                 settings.led.brightness = 20;
+        }
+        if (settings.led.brightness > 100) {
+                settings.led.brightness = 100;
         }
 
         modes = cJSON_GetObjectItem(root, "modes");
