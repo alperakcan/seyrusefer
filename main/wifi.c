@@ -218,12 +218,12 @@ int seyrusefer_wifi_start (struct seyrusefer_wifi *wifi)
                 goto out;
         }
 
-        ap_ssid = seyrusefer_config_get_string(wifi->config, "wifi_ap_ssid", "seyrusefer");
+        ap_ssid = seyrusefer_config_get_string(wifi->config, "wifi_ap_ssid", "Seyrusefer");
         if (ap_ssid == NULL || strlen(ap_ssid) == 0) {
                 seyrusefer_errorf("ap_ssid is invalid");
                 goto bail;
         }
-        ap_pass = seyrusefer_config_get_string(wifi->config, "wifi_ap_password", "seyrusefer");
+        ap_pass = seyrusefer_config_get_string(wifi->config, "wifi_ap_password", "Seyrusefer");
         if (ap_pass == NULL || strlen(ap_pass) == 0) {
                 seyrusefer_errorf("ap_pass is invalid");
                 goto bail;
