@@ -6,7 +6,12 @@ Controlling unit designed for adventure bikes.
 Controlling unit is a Bluetooth remote devices that lets you to operate
 various applications from handlebar without the need of touching the display.
 
-# 1. build
+# 1. build & flash
+
+ESP-IDF is a great software development environment for the hardware based on
+the ESP32 chip by Espressif. Please follow the ESP-IDF Programming Guide at
+https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/ if you
+are not familiar with ESP-IDF.
 
 ## 1.1. debian
 
@@ -34,15 +39,15 @@ various applications from handlebar without the need of touching the display.
 
     sudo usermod -a -G dialout $USER
 
-### 1.1.3. install espressif
+### 1.1.3. install esp-idf
 
 ### 1.1.3.1. clone
 
-    git clone -b v5.1.2 --recursive https://github.com/espressif/esp-idf.git esp-idf-v5.1.2.git
+    git clone -b v5.2 --recursive https://github.com/espressif/esp-idf.git esp-idf-v5.2.git
 
 ### 1.1.3.2. setup tools
 
-    cd esp-idf-v5.1.2.git
+    cd esp-idf-v5.2.git
     ./install.sh esp32
 
 ### 1.1.3.3. setup environment
@@ -67,3 +72,29 @@ various applications from handlebar without the need of touching the display.
     idf.py build
     idf.py -p /dev/ttyUSB0 erase_flash
     idf.py -p /dev/ttyUSB0 flash monitor
+
+### 1.1.4 build & flash merged application
+
+    idf.py set-target esp32
+    idf.py menuconfig
+    idf.py build
+
+    ( \
+        cd build && \
+        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.0.bin @flash_args \
+    )
+
+    esptool.py -p /dev/ttyUSB0 erase_flash
+    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.0.bin
+
+    idf.py -p /dev/ttyUSB0 monitor
+
+# 2. flash
+
+Flash supplied merged bin file. Check release files for bin files.
+
+## 2.1 windows
+
+### 2.1.2 flash download tools
+
+Please download and install Flash Download Tools from ESPRESSIF at https://www.espressif.com/en/support/download/other-tools

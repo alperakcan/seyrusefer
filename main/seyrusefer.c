@@ -20,7 +20,7 @@
 #include "settings.h"
 #include "seyrusefer.h"
 
-#define SEYRUSEFER_VERSION                              "seyrusefer-1.0.0.bin"
+#define SEYRUSEFER_VERSION                              "seyrusefer-v1.0.0.bin"
 
 enum {
         SEYRUSEFER_STATE_NONE,
@@ -401,7 +401,7 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->settings.magic = SEYRUSEFER_SETTINGS_MAGIC;
         seyrusefer->settings.mode  = SEYRUSEFER_SETTINGS_MODE_1;
 
-        seyrusefer->settings.led.brightness = 35;
+        seyrusefer->settings.led.brightness = 30;
 
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_KEY_C;
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_KEY_R;
