@@ -91,10 +91,39 @@ are not familiar with ESP-IDF.
 
 # 2. flash
 
-Flash supplied merged bin file. Check release files for bin files.
+Please downlaod latest bin file from https://github.com/alperakcan/seyrusefer/releases
+and flash.
 
 ## 2.1 windows
 
+Please download and install USB to UART Bridge Controller driver from
+https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads
+
 ### 2.1.2 flash download tools
 
-Please download and install Flash Download Tools from ESPRESSIF at https://www.espressif.com/en/support/download/other-tools
+Please download and install Flash Download Tools from ESPRESSIF from
+https://www.espressif.com/en/support/download/other-tools
+
+Select file as seyrusefer.bin and offset as 0x0000.
+
+## 2.2 esptool-js
+
+This repository contains a Javascript implementation of esptool, a serial flasher
+utility for Espressif chips. esptool-js is based on Web Serial API and works in
+Google Chrome and Microsoft Edge version 89 or later browsers.
+
+Please visit https://espressif.github.io/esptool-js/ and follow instructions
+to program your device.
+
+Select file as seyrusefer.bin and offset as 0x0000.
+
+## 2.3 esp web tool
+
+ESP Web Tool is a open source web app project to flash the device, please see
+project details at https://github.com/SpacehuhnTech/espwebtool and use it at
+your own risk.
+
+Please visit https://esp.huhn.me/ and follow instructions to program your
+device.
+
+Select file as seyrusefer.bin and offset as 0x0000.
