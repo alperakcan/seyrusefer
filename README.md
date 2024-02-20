@@ -108,9 +108,9 @@ Select file as seyrusefer.bin and offset as 0x0000.
 
 ## 2.2 esptool-js
 
-This repository contains a Javascript implementation of esptool, a serial flasher
-utility for Espressif chips. esptool-js is based on Web Serial API and works in
-Google Chrome and Microsoft Edge version 89 or later browsers.
+A Javascript implementation of esptool, a serial flasher utility for Espressif
+chips. esptool-js is based on Web Serial API and works in Google Chrome and
+Microsoft Edge version 89 or later browsers.
 
 Please visit https://espressif.github.io/esptool-js/ and follow instructions
 to program your device.
