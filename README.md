@@ -6,6 +6,12 @@ Controlling unit designed for adventure bikes.
 Controlling unit is a Bluetooth remote device that lets you to operate
 various applications from handlebar without any need to touch the display.
 
+This repository contains the software to run on the hardware controller,
+also known as Seyrusefer, designed by Sefa Dogan.
+
+Hardware design files and DIY building instructions are available in the
+"docs" directory.
+
 # 1. build & flash
 
 ESP-IDF is a great software development environment for the hardware based on
