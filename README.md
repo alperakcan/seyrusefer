@@ -3,7 +3,7 @@
 
 Controlling unit designed for adventure bikes.
 
-Controlling unit is a Bluetooth remote devices that lets you to operate
+Controlling unit is a Bluetooth remote device that lets you to operate
 various applications from handlebar without the need of touching the display.
 
 # 1. build & flash
