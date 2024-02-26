@@ -112,3 +112,11 @@ Select file as seyrusefer.bin and offset as 0x0000.
 
     esptool.exe erase_flash
     esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.2.bin
+
+# 3. run
+
+Button combinations:
+  - 1 & 2 : mode selection
+  - 1 & 3 : wifi setup
+  - 1 & 4 : restart
+  - 1 & 5 : restore to defaults
