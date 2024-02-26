@@ -81,11 +81,11 @@ are not familiar with ESP-IDF.
 
     ( \
         cd build && \
-        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.0.bin @flash_args \
+        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.1.bin @flash_args \
     )
 
     esptool.py -p /dev/ttyUSB0 erase_flash
-    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.0.bin
+    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.1.bin
 
     idf.py -p /dev/ttyUSB0 monitor
 
@@ -99,31 +99,10 @@ and flash.
 Please download and install USB to UART Bridge Controller driver from
 https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads
 
-### 2.1.2 flash download tools
-
-Please download and install Flash Download Tools from ESPRESSIF from
-https://www.espressif.com/en/support/download/other-tools
+Please download and approtiate version for windows (ex: esptool-v4.7.0-win64.zip)
+from https://github.com/espressif/esptool/releases
 
 Select file as seyrusefer.bin and offset as 0x0000.
 
-## 2.2 esptool-js
-
-A Javascript implementation of esptool, a serial flasher utility for Espressif
-chips. esptool-js is based on Web Serial API and works in Google Chrome and
-Microsoft Edge version 89 or later browsers.
-
-Please visit https://espressif.github.io/esptool-js/ and follow instructions
-to program your device.
-
-Select file as seyrusefer.bin and offset as 0x0000.
-
-## 2.3 esp web tool
-
-ESP Web Tool is a open source web app project to flash the device, please see
-project details at https://github.com/SpacehuhnTech/espwebtool and use it at
-your own risk.
-
-Please visit https://esp.huhn.me/ and follow instructions to program your
-device.
-
-Select file as seyrusefer.bin and offset as 0x0000.
+    esptool.exe erase_flash
+    esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.1.bin

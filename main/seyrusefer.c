@@ -20,7 +20,7 @@
 #include "settings.h"
 #include "seyrusefer.h"
 
-#define SEYRUSEFER_VERSION                              "seyrusefer-v1.0.0.bin"
+#define SEYRUSEFER_VERSION                              "seyrusefer-esp32-v1.0.1.bin"
 
 enum {
         SEYRUSEFER_STATE_NONE,
@@ -28,12 +28,14 @@ enum {
         SEYRUSEFER_STATE_RUNNING,
         SEYRUSEFER_STATE_MODE_SELECT,
         SEYRUSEFER_STATE_WIFI_SETUP,
+        SEYRUSEFER_STATE_RESTART,
         SEYRUSEFER_STATE_ERROR
 #define SEYRUSEFER_STATE_NONE                           SEYRUSEFER_STATE_NONE
 #define SEYRUSEFER_STATE_INIT                           SEYRUSEFER_STATE_INIT
 #define SEYRUSEFER_STATE_RUNNING                        SEYRUSEFER_STATE_RUNNING
 #define SEYRUSEFER_STATE_MODE_SELECT                    SEYRUSEFER_STATE_MODE_SELECT
 #define SEYRUSEFER_STATE_WIFI_SETUP                     SEYRUSEFER_STATE_WIFI_SETUP
+#define SEYRUSEFER_STATE_RESTART                        SEYRUSEFER_STATE_RESTART
 #define SEYRUSEFER_STATE_ERROR                          SEYRUSEFER_STATE_ERROR
 };
 
@@ -64,6 +66,9 @@ struct seyrusefer {
 
         int64_t wifi_setup_buttons_dur;
         int64_t wifi_setup_buttons_tsms;
+
+        int64_t wifi_restart_buttons_dur;
+        int64_t wifi_restart_buttons_tsms;
 
         int wifi_setup_led_brightness;
         int wifi_setup_led_brightness_dur;
@@ -101,6 +106,7 @@ static const char * seyrusefer_state_string (int state)
         if (state == SEYRUSEFER_STATE_RUNNING)          return "running";
         if (state == SEYRUSEFER_STATE_MODE_SELECT)      return "mode-select";
         if (state == SEYRUSEFER_STATE_WIFI_SETUP)       return "wifi-setup";
+        if (state == SEYRUSEFER_STATE_RESTART)          return "restart";
         if (state == SEYRUSEFER_STATE_ERROR)            return "error";
         return "unknown";
 }
@@ -222,6 +228,13 @@ static int seyrusefer_set_state_wifi_setup_actual (struct seyrusefer *seyrusefer
 bail:   return -1;
 }
 
+static int seyrusefer_set_state_restart_actual (struct seyrusefer *seyrusefer)
+{
+        seyrusefer_errorf("entered in restart state, restarting...");
+        seyrusefer->restart = 1;
+        return 0;
+}
+
 static int seyrusefer_set_state_error_actual (struct seyrusefer *seyrusefer)
 {
         seyrusefer_errorf("entered in error state, restarting...");
@@ -269,6 +282,12 @@ static int seyrusefer_set_state (struct seyrusefer *seyrusefer, int state)
                 rc = seyrusefer_set_state_wifi_setup_actual(seyrusefer);
                 if (rc != 0) {
                         seyrusefer_errorf("seyrusefer_set_state_wifi_setup_actual failed");
+                        goto bail;
+                }
+        } else if (seyrusefer->state == SEYRUSEFER_STATE_RESTART) {
+                rc = seyrusefer_set_state_restart_actual(seyrusefer);
+                if (rc != 0) {
+                        seyrusefer_errorf("seyrusefer_set_state_restart_actual failed");
                         goto bail;
                 }
         } else if (seyrusefer->state == SEYRUSEFER_STATE_ERROR) {
@@ -387,6 +406,9 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->wifi_setup_led_brightness_dur       = 250;
         seyrusefer->wifi_setup_led_brightness_tsms      = 0;
         seyrusefer->wifi_setup_led_brightness           = 0;
+
+        seyrusefer->wifi_restart_buttons_dur            = 2500;
+        seyrusefer->wifi_restart_buttons_tsms           = 0;
 
         seyrusefer->stats_dur                           = 10000;
         seyrusefer->stats_tsms                          = 0;
@@ -765,6 +787,18 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                         }
                 } else {
                         seyrusefer->wifi_setup_buttons_tsms = 0;
+                }
+
+                if (seyrusefer->buttons == (SEYRUSEFER_PLATFORM_BUTTON_2 | SEYRUSEFER_PLATFORM_BUTTON_3)) {
+                        if (seyrusefer->wifi_restart_buttons_tsms == 0) {
+                                seyrusefer->wifi_restart_buttons_tsms = now;
+                        }
+                        if (now < seyrusefer->wifi_restart_buttons_tsms ||
+                            now - seyrusefer->wifi_restart_buttons_tsms >= seyrusefer->wifi_restart_buttons_dur * 1000) {
+                                seyrusefer_set_state(seyrusefer, SEYRUSEFER_STATE_RESTART);
+                        }
+                } else {
+                        seyrusefer->wifi_restart_buttons_tsms = 0;
                 }
         } else if (seyrusefer->state == SEYRUSEFER_STATE_MODE_SELECT) {
                 if (now < seyrusefer->mode_select_led_brightness_tsms ||
