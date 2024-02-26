@@ -117,11 +117,12 @@ Select file as seyrusefer.bin and offset as 0x0000.
 
 Button combinations (press and hold for 2.5 seconds):
   - 1 & 2 : mode selection
-    - 1 : mode 1
-    - 2 : mode 2
-    - 3 : mode 3
-    - 4 : mode 4
-    - 5 : mode 5
+    Select mode (pressing a button, once):
+      - 1 : mode 1
+      - 2 : mode 2
+      - 3 : mode 3
+      - 4 : mode 4
+      - 5 : mode 5
   - 1 & 3 : wifi setup
   - 1 & 4 : restart
   - 1 & 5 : restore to defaults
