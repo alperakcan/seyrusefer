@@ -118,7 +118,7 @@ Select file as seyrusefer.bin and offset as 0x0000.
 Button combinations (press and hold for 2.5 seconds):
   - 1 & 2 : mode selection
 
-    Select mode (pressing a button, once):
+    Select mode (press once):
       - 1 : mode 1
       - 2 : mode 2
       - 3 : mode 3
