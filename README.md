@@ -125,6 +125,7 @@ Button combinations (press and hold for 2.5 seconds):
       - 3 : mode 3
       - 4 : mode 4
       - 5 : mode 5
+
   - 1 & 3 : wifi setup
   - 1 & 4 : restart
   - 1 & 5 : restore to defaults

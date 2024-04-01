@@ -123,6 +123,7 @@ Düğme kombinasyonları (2.5 saniye basılı tutun):
       - 3 : mod 3
       - 4 : mod 4
       - 5 : mod 5
+
   - 1 & 3 : wifi ayarı
   - 1 & 4 : yeniden başlatma
   - 1 & 5 : varsayılanlara geri yükleme
