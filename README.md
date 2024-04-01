@@ -58,7 +58,7 @@ are not familiar with ESP-IDF.
 
 ### 1.1.3.3. setup environment
 
-    cd esp-idf-v5.1.2.git
+    cd esp-idf-v5.2.git
     . export.sh
 
 ### 1.1.3.4. hello world
