@@ -100,7 +100,8 @@ en son bin dosyasını indirin ve flaşlayın.
 
 ## 2.1. windows
 
-Lütfen https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads
+Lütfen CP210x icin https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads,
+CH34x icin https://wch-ic.com/search?q=CH340&t=downloads
 adresinden USB'den UART Köprü Denetleyicisi sürücüsünü indirip kurun.
 
 Lütfen https://github.com/espressif/esptool/releases adresinden
@@ -108,8 +109,8 @@ uygun sürümü indirin (örneğin: esptool-v4.7.0-win64.zip)
 
 Dosyayı seyrusefer.bin olarak seçin ve ofseti 0x0000 olarak ayarlayın.
 
-    esptool.exe erase_flash
-    esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.2.bin
+    ./esptool.exe erase_flash
+    ./esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.2.bin
 
 # 3. çalıştır
 

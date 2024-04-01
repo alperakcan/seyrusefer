@@ -103,15 +103,16 @@ and flash.
 ## 2.1 windows
 
 Please download and install USB to UART Bridge Controller driver from
-https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads
+https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads for CP210x, and
+https://wch-ic.com/search?q=CH340&t=downloads for CH34x.
 
 Please download and approtiate version for windows (ex: esptool-v4.7.0-win64.zip)
 from https://github.com/espressif/esptool/releases
 
 Select file as seyrusefer.bin and offset as 0x0000.
 
-    esptool.exe erase_flash
-    esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.2.bin
+    ./esptool.exe erase_flash
+    ./esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.2.bin
 
 # 3. run
 
