@@ -87,12 +87,12 @@ are not familiar with ESP-IDF.
 
     ( \
         cd build && \
-        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.6-full.bin @flash_args && \
-        cp seyrusefer-esp32.bin ../seyrusefer-esp32-v1.0.6.bin \
+        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.7-full.bin @flash_args && \
+        cp seyrusefer-esp32.bin ../seyrusefer-esp32-v1.0.7.bin \
     )
 
     esptool.py -p /dev/ttyUSB0 erase_flash
-    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.6-full.bin
+    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.7-full.bin
 
     idf.py -p /dev/ttyUSB0 monitor
 
@@ -113,7 +113,7 @@ from https://github.com/espressif/esptool/releases
 Select file as seyrusefer.bin and offset as 0x0000.
 
     ./esptool.exe erase_flash
-    ./esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.6-full.bin
+    ./esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.7-full.bin
 
 # 3. run
 
