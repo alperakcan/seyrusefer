@@ -98,7 +98,7 @@ are not familiar with ESP-IDF.
 
 # 2. flash
 
-Please downlaod latest bin file from https://github.com/alperakcan/seyrusefer/releases
+Please downlaod latest full bin file from https://github.com/alperakcan/seyrusefer/releases
 and flash.
 
 ## 2.1 windows
