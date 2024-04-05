@@ -543,6 +543,29 @@
                                                         }
                                                 }) .then(json => {
                                                         elementFirmwareResultDiv.innerHTML = "Successfully uploaded firmware. Device will restart in 2 seconds, Wifi connection will be lost.";
+                                                        {
+                                                                const controller = new AbortController();
+                                                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
+                                                                fetch(`${apiUrl}${apiSystemRestart}`, {
+                                                                        method: 'GET',
+                                                                        signal: controller.signal,
+                                                                        credentials: 'omit',
+                                                                        headers: {
+                                                                                'Accept': 'application/json'
+                                                                        }
+                                                                }).then(res => {
+                                                                        if (res.ok == true && res.status === 200) {
+                                                                                return res.json();
+                                                                        } else {
+                                                                                console.log("api call: {0}{1} failed, res: {2}, {3}".format(apiUrl, apiSystemRestart, res.ok, res.status))
+                                                                                throw new Error();
+                                                                        }
+                                                                }) .then(json => {
+                                                                }) .catch(e => {
+                                                                        console.error(e);
+                                                                        elementFirmwareResultDiv.innerHTML = "Can not send restart command, try again later.";
+                                                                });
+                                                        }
                                                 }) .catch(e => {
                                                         console.error(e);
                                                         elementFirmwareResultDiv.innerHTML = "Update error, try again later.";

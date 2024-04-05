@@ -465,9 +465,6 @@ static esp_err_t api_firmware_update (httpd_req_t *req)
         httpd_resp_set_type(req, "application/json");
         httpd_resp_send(req, "{}", 2);
 
-        vTaskDelay(pdMS_TO_TICKS(2000));
-        seyrusefer_platform_restart();
-
         return ESP_OK;
 bail:   httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Internal Server Error");
         if (chunk_buffer != NULL) {
