@@ -85,11 +85,12 @@ https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/
 
     ( \
         cd build && \
-        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.2.bin @flash_args \
+        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.8-full.bin @flash_args && \
+        cp seyrusefer-esp32.bin ../seyrusefer-esp32-v1.0.8.bin \
     )
 
     esptool.py -p /dev/ttyUSB0 erase_flash
-    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.2.bin
+    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.8-full.bin
 
     idf.py -p /dev/ttyUSB0 monitor
 
@@ -110,7 +111,7 @@ uygun sürümü indirin (örneğin: esptool-v4.7.0-win64.zip)
 Dosyayı seyrusefer.bin olarak seçin ve ofseti 0x0000 olarak ayarlayın.
 
     ./esptool.exe erase_flash
-    ./esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.2.bin
+    ./esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.8-full.bin
 
 # 3. çalıştır
 
@@ -125,5 +126,13 @@ Düğme kombinasyonları (2.5 saniye basılı tutun):
       - 5 : mod 5
 
   - 1 & 3 : wifi ayarı
+
+    SSID    : Seyrusefer
+    Password: Seyrusefer
+
+    Kontrolcüye erişmek için http://192.168.4.1 adresini browser ile açın.
+
+    Her hangi bir düğmeye basıldığında cihaz normal çalışma moduna geri dönecektir.
+
   - 1 & 4 : yeniden başlatma
   - 1 & 5 : varsayılanlara geri yükleme
