@@ -28,6 +28,7 @@
                         let apiSystemRestore            = "/system/restore";
                         let apiSystemVersion            = "/system/version";
                         let apiTimeout                  = 10 * 1000;
+                        let apiFirmwareUpdateTimeout    = 60 * 1000;
 
                         let elementSeyrusefersLink      = document.getElementById("elementSeyrusefersLink");
                         let elementSeyruseferLink       = document.getElementById("elementSeyruseferLink");
@@ -524,7 +525,7 @@
                                         reader.onload = function () {
                                                 let readerResultUint8Array = new Uint8Array(reader.result);
                                                 const controller = new AbortController();
-                                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
+                                                const timeoutId = setTimeout(() => controller.abort(), apiFirmwareUpdateTimeout);
                                                 fetch(`${apiUrl}${apiFirmwareUpdate}`, {
                                                         method: 'POST',
                                                         signal: controller.signal,
@@ -752,14 +753,7 @@
                 </div>
                 <div id="elementFirmwareDiv">
                         <p>
-                                <table width="100%">
-                                        <tbody>
-                                                <tr>
-                                                        <td>File</td>
-                                                        <td><input id="elementFirmwareFileInput"  type="file" class="form-control"></td>
-                                                </tr>
-                                        </tbody>
-                                </table>
+                                <input id="elementFirmwareFileInput"  type="file" class="form-control">
                         </p>
                         <p>
                                 <button id="elementFirmwareUpdateButton" type="button" class="w-100 btn btn-light">Update</button>
