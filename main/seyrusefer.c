@@ -20,8 +20,6 @@
 #include "settings.h"
 #include "seyrusefer.h"
 
-#define SEYRUSEFER_VERSION                              "seyrusefer-esp32-v1.0.2.bin"
-
 enum {
         SEYRUSEFER_STATE_NONE,
         SEYRUSEFER_STATE_INIT,

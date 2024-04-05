@@ -49,16 +49,16 @@ are not familiar with ESP-IDF.
 
 ### 1.1.3.1. clone
 
-    git clone -b v5.2 --recursive https://github.com/espressif/esp-idf.git esp-idf-v5.2.git
+    git clone -b v5.2.1 --recursive https://github.com/espressif/esp-idf.git esp-idf-v5.2.1.git
 
 ### 1.1.3.2. setup tools
 
-    cd esp-idf-v5.2.git
+    cd esp-idf-v5.2.1.git
     ./install.sh esp32
 
 ### 1.1.3.3. setup environment
 
-    cd esp-idf-v5.2.git
+    cd esp-idf-v5.2.1.git
     . export.sh
 
 ### 1.1.3.4. hello world
@@ -127,5 +127,13 @@ Button combinations (press and hold for 2.5 seconds):
       - 5 : mode 5
 
   - 1 & 3 : wifi setup
+
+    SSID    : Seyrusefer
+    Password: Seyrusefer
+
+    Open URL: http://192.168.4.1 to access controller
+
+    Press any button to exit wifi setup.
+
   - 1 & 4 : restart
   - 1 & 5 : restore to defaults

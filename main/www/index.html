@@ -23,8 +23,10 @@
                         let apiUrl                      = `http://${window.location.hostname}:${window.location.port}/api`;
                         let apiSettingsGet              = "/settings/get";
                         let apiSettingsSet              = "/settings/set";
+                        let apiFirmwareUpdate           = "/firmware/update";
                         let apiSystemRestart            = "/system/restart";
                         let apiSystemRestore            = "/system/restore";
+                        let apiSystemVersion            = "/system/version";
                         let apiTimeout                  = 10 * 1000;
 
                         let elementSeyrusefersLink      = document.getElementById("elementSeyrusefersLink");
@@ -41,6 +43,8 @@
 
                         let elementFirmwareDiv          = document.getElementById("elementFirmwareDiv");
                         let elementFirmwareLink         = document.getElementById("elementFirmwareLink");
+                        let elementFirmwareFileInput    = document.getElementById("elementFirmwareFileInput");
+                        let elementFirmwareUpdateButton = document.getElementById("elementFirmwareUpdateButton");
                         let elementFirmwareResultDiv    = document.getElementById("elementFirmwareResultDiv");
 
                         let elementRestoreDiv           = document.getElementById("elementRestoreDiv");
@@ -64,6 +68,8 @@
                                 elementSettingsResultDiv.innerHTML      = "";
 
                                 elementFirmwareDiv.style.display        = "none";
+                                elementFirmwareFileInput.files          = null;
+                                elementFirmwareFileInput.value          = "";
                                 elementFirmwareResultDiv.innerHTML      = "";
 
                                 elementRestoreDiv.style.display         = "none";
@@ -507,6 +513,49 @@
                                 });
                         }
 
+                        elementFirmwareUpdateButton.onclick = function () {
+                                let firmwareBLOB = null;
+
+                                elementFirmwareResultDiv.innerHTML = "Update is in progess...";
+
+                                if (elementFirmwareFileInput.files.length > 0) {
+                                        let reader = new FileReader();
+                                        reader.readAsArrayBuffer(elementFirmwareFileInput.files[0]);
+                                        reader.onload = function () {
+                                                let readerResultUint8Array = new Uint8Array(reader.result);
+                                                const controller = new AbortController();
+                                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
+                                                fetch(`${apiUrl}${apiFirmwareUpdate}`, {
+                                                        method: 'POST',
+                                                        signal: controller.signal,
+                                                        credentials: 'omit',
+                                                        headers: {
+                                                                'Accept': 'application/json',
+                                                                'Content-Type': 'application/seyrusefer'
+                                                        },
+                                                        body: readerResultUint8Array,
+                                                }).then(res => {
+                                                        if (res.ok == true && res.status === 200) {
+                                                                return res.json();
+                                                        } else {
+                                                                console.log("api call: {0}{1} failed, res: {2}, {3}".format(apiUrl, apiFirmwareUpdate, res.ok, res.status))
+                                                                throw new Error();
+                                                        }
+                                                }) .then(json => {
+                                                        elementFirmwareResultDiv.innerHTML = "Successfully uploaded firmware. Device will restart in 2 seconds, Wifi connection will be lost.";
+                                                }) .catch(e => {
+                                                        console.error(e);
+                                                        elementFirmwareResultDiv.innerHTML = "Update error, try again later.";
+                                                });
+                                        }
+                                        reader.onerror = function (error) {
+                                                elementFirmwareResultDiv.innerHTML = "Update error, try again later.";
+                                        }
+                                } else {
+                                        elementFirmwareResultDiv.innerHTML = "Update error, select file.";
+                                }
+                        }
+
                         elementFirmwareUpdate = function () {
                         }
 
@@ -566,17 +615,50 @@
 
                         elementAboutUpdate = function () {
                                 let h;
-                                h  = "<p>Controlling unit designed for adventure bikes.</p>"
-                                h += "<p>Controlling unit is a Bluetooth remote device that lets you to " +
-                                     "operate various applications from handlebar without any need to " +
-                                     "touch the display.</p>";
+                                h  = `<p>Controlling unit designed for adventure bikes.</p>`
+                                h += `<p>Controlling unit is a Bluetooth remote device that lets you to ` +
+                                     `operate various applications from handlebar without any need to ` +
+                                     `touch the display.</p>`;
+                                h += `<p>See details on <a class="text-decoration-none" style="color:inherit" ` +
+                                     `href="https://github.com/alperakcan/seyrusefer">https://github.com/alperakcan/seyrusefer.` +
+                                     `</a><p>`;
+                                h += `<p>Alper Akcan<br>Sefa Dogan</p>`;
                                 elementAboutResultDiv.innerHTML = h;
                         }
 
                         elementsReset();
                         elementSeyruseferDiv.style.display = "block";
 
-                        elementSeyruseferId.innerHTML = "v1.0.2";
+                        elementSeyruseferId.innerHTML = "";
+                        {
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
+                                fetch(`${apiUrl}${apiSystemVersion}`, {
+                                        method: 'GET',
+                                        signal: controller.signal,
+                                        credentials: 'omit',
+                                        headers: {
+                                                'Accept': 'application/json'
+                                        }
+                                }).then(res => {
+                                        if (res.ok == true && res.status === 200) {
+                                                return res.json();
+                                        } else {
+                                                console.log("api call: {0}{1} failed, res: {2}, {3}".format(apiUrl, apiSystemVersion, res.ok, res.status))
+                                                throw new Error();
+                                        }
+                                }) .then(json => {
+                                        console.log("{0}{1}".format(apiUrl, apiSystemVersion));
+                                        console.log("  string: {0}".format(json.string));
+                                        console.log("  major : {0}".format(json.major));
+                                        console.log("  minor : {0}".format(json.minor));
+                                        console.log("  micro : {0}".format(json.micro));
+                                        elementSeyruseferId.innerHTML = json.string;
+                                }) .catch(e => {
+                                        console.error(e);
+                                        elementSeyruseferId.innerHTML = "";
+                                });
+                        }
                 }
         </script>
 </head>
@@ -611,7 +693,7 @@
                                                 <div class="d-flex w-100 justify-content-between">
                                                         <h5 class="mb-1">Firmware</h5>
                                                 </div>
-                                                <p class="mb-1">Get firmware information and/or update.</p>
+                                                <p class="mb-1">Firmware update.</p>
                                         </a>
                                 </div>
                                 <div class="list-group">
@@ -648,6 +730,19 @@
                         </p>
                 </div>
                 <div id="elementFirmwareDiv">
+                        <p>
+                                <table width="100%">
+                                        <tbody>
+                                                <tr>
+                                                        <td>File</td>
+                                                        <td><input id="elementFirmwareFileInput"  type="file" class="form-control"></td>
+                                                </tr>
+                                        </tbody>
+                                </table>
+                        </p>
+                        <p>
+                                <button id="elementFirmwareUpdateButton" type="button" class="w-100 btn btn-light">Update</button>
+                        </p>
                         <p>
                                 <div id="elementFirmwareResultDiv">
 

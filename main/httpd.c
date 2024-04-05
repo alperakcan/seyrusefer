@@ -7,6 +7,8 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "esp_http_server.h"
+#include "esp_partition.h"
+#include "esp_ota_ops.h"
 #include "cJSON.h"
 
 #define SEYRUSEFER_DEBUG_TAG "httpd"
@@ -15,6 +17,7 @@
 #include "config.h"
 #include "hid.h"
 #include "settings.h"
+#include "version.h"
 #include "httpd.h"
 
 struct seyrusefer_httpd {
@@ -33,7 +36,18 @@ static esp_err_t system_version (httpd_req_t *req)
 
         resp = NULL;
 
-        asprintf(&resp, "seyrusefer-1.0.0.bin");
+        asprintf(&resp,
+                "{" \
+                "  \"string\": \"%s\"," \
+                "  \"major\": %d," \
+                "  \"minor\": %d," \
+                "  \"micro\": %d" \
+                "}",
+                SEYRUSEFER_VERSION_STRING,
+                SEYRUSEFER_VERSION_MAJOR,
+                SEYRUSEFER_VERSION_MINOR,
+                SEYRUSEFER_VERSION_MICRO);
+        httpd_resp_set_type(req, "application/json");
         httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
         free(resp);
 
@@ -46,6 +60,7 @@ static esp_err_t api_system_restart (httpd_req_t *req)
 
         (void) httpd;
 
+        httpd_resp_set_type(req, "application/json");
         httpd_resp_send(req, "{}", 2);
         vTaskDelay(pdMS_TO_TICKS(2000));
 
@@ -60,6 +75,7 @@ static esp_err_t api_system_restore (httpd_req_t *req)
 
         (void) httpd;
 
+        httpd_resp_set_type(req, "application/json");
         httpd_resp_send(req, "{}", 2);
         vTaskDelay(pdMS_TO_TICKS(2000));
 
@@ -79,6 +95,7 @@ static esp_err_t api_settings_get (httpd_req_t *req)
 
         rc = seyrusefer_config_get_blob(httpd->config, "settings", (void **) &settings, &length);
         if (rc == 0) {
+                httpd_resp_set_type(req, "application/json");
                 httpd_resp_send(req, "{}", 2);
         } else if (rc == 1) {
                 char *resp;
@@ -162,6 +179,7 @@ static esp_err_t api_settings_get (httpd_req_t *req)
                         seyrusefer_errorf("can not allocate memory");
                         goto bail;
                 }
+                httpd_resp_set_type(req, "application/json");
                 httpd_resp_send(req, resp, strlen(resp));
                 free(resp);
                 free(settings);
@@ -328,6 +346,7 @@ static esp_err_t api_settings_set (httpd_req_t *req)
         cJSON_Delete(root);
         free(buffer);
 
+        httpd_resp_set_type(req, "application/json");
         httpd_resp_send(req, "{}", 2);
         return ESP_OK;
 bail:   httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -336,6 +355,126 @@ bail:   httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Internal Serv
         }
         if (root != NULL) {
                 cJSON_Delete(root);
+        }
+        return ESP_FAIL;
+}
+
+static esp_err_t api_firmware_update (httpd_req_t *req)
+{
+        int r;
+        int chunk_length;
+        char *chunk_buffer;
+
+        const esp_partition_t *ota_0;
+        const esp_partition_t *ota_1;
+	const esp_partition_t *running;
+        const esp_partition_t *update;
+        esp_ota_handle_t ota_update_handle;
+
+        int rc;
+        struct seyrusefer_httpd *httpd = req->user_ctx;
+
+        (void) httpd;
+
+        chunk_length = 4096;
+        chunk_buffer = NULL;
+        ota_update_handle = 0;
+
+        seyrusefer_debugf("content_length: %d", req->content_len);
+        seyrusefer_debugf("chunk_length  : %d", chunk_length);
+
+        chunk_buffer = malloc(chunk_length);
+        if (chunk_buffer == NULL) {
+                seyrusefer_errorf("can not allocate memory");
+                goto bail;
+        }
+
+        ota_0   = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, NULL);
+	ota_1   = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_1, NULL);
+	running = esp_ota_get_running_partition();
+        update  = NULL;
+
+        if (running == ota_1) {
+                update = ota_0;
+        } else if (running == ota_0) {
+                update = ota_1;
+        } else {
+                seyrusefer_errorf("logic error");
+                goto bail;
+        }
+
+        seyrusefer_infof("ota_0: %p", ota_0);
+        seyrusefer_infof("  label  : %s", ota_0->label);
+        seyrusefer_infof("  type   : %d", ota_0->type);
+        seyrusefer_infof("  subtype: %d", ota_0->subtype);
+        seyrusefer_infof("ota_1: %p", ota_1);
+        seyrusefer_infof("  label  : %s", ota_1->label);
+        seyrusefer_infof("  type   : %d", ota_1->type);
+        seyrusefer_infof("  subtype: %d", ota_1->subtype);
+        seyrusefer_infof("running: %p", running);
+        seyrusefer_infof("  label  : %s", running->label);
+        seyrusefer_infof("  type   : %d", running->type);
+        seyrusefer_infof("  subtype: %d", running->subtype);
+        seyrusefer_infof("update: %p", update);
+        seyrusefer_infof("  label  : %s", update->label);
+        seyrusefer_infof("  type   : %d", update->type);
+        seyrusefer_infof("  subtype: %d", update->subtype);
+
+        rc = esp_ota_begin(update, OTA_SIZE_UNKNOWN, &ota_update_handle);
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("esp_ota_begin failed, rc: %d, %s", rc, esp_err_to_name(rc));
+                goto bail;
+        }
+
+        r = 0;
+        while (r < req->content_len) {
+                rc = httpd_req_recv(req, chunk_buffer, chunk_length);
+                if (rc <= 0) {
+                        seyrusefer_errorf("httpd_req_recv failed, rc: %d, r: %d / %d", rc, r, req->content_len);
+                        goto bail;
+                }
+                r += rc;
+
+                rc = esp_ota_write(ota_update_handle, chunk_buffer, rc);
+                if (rc != ESP_OK) {
+                        seyrusefer_errorf("esp_ota_write failed, rc: %d, %s", rc, esp_err_to_name(rc));
+                        goto bail;
+                }
+        }
+        if (r != req->content_len) {
+                seyrusefer_errorf("httpd_req_recv failed, r: %d != %d", r, req->content_len);
+                goto bail;
+        }
+
+        rc = esp_ota_end(ota_update_handle);
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("esp_ota_write failed, rc: %d, %s", rc, esp_err_to_name(rc));
+                goto bail;
+        }
+        ota_update_handle = 0;
+
+        rc = esp_ota_set_boot_partition(update);
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("esp_ota_set_boot_partition failed, rc: %d, %s", rc, esp_err_to_name(rc));
+                goto bail;
+        }
+
+        free(chunk_buffer);
+        chunk_buffer = NULL;
+
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, "{}", 2);
+
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        seyrusefer_platform_restart();
+
+        return ESP_OK;
+bail:   httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Internal Server Error");
+        if (chunk_buffer != NULL) {
+                free(chunk_buffer);
+        }
+        if (ota_update_handle != 0) {
+                esp_ota_abort(ota_update_handle);
         }
         return ESP_FAIL;
 }
@@ -465,6 +604,12 @@ static httpd_uri_t *apis[] = {
                 .uri      = "/api/settings/set",
                 .method   = HTTP_POST,
                 .handler  = api_settings_set,
+                .user_ctx = NULL
+        },
+        &(httpd_uri_t) {
+                .uri      = "/api/firmware/update",
+                .method   = HTTP_POST,
+                .handler  = api_firmware_update,
                 .user_ctx = NULL
         },
         &(httpd_uri_t) {
