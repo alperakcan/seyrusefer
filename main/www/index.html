@@ -29,6 +29,7 @@
                         let apiSystemVersion            = "/system/version";
                         let apiTimeout                  = 10 * 1000;
                         let apiFirmwareUpdateTimeout    = 60 * 1000;
+                        let apiFirmwareUpdateInProgress = false;
 
                         let elementSeyrusefersLink      = document.getElementById("elementSeyrusefersLink");
                         let elementSeyruseferLink       = document.getElementById("elementSeyruseferLink");
@@ -72,6 +73,7 @@
                                 elementFirmwareFileInput.files          = null;
                                 elementFirmwareFileInput.value          = "";
                                 elementFirmwareResultDiv.innerHTML      = "";
+                                apiFirmwareUpdateInProgress             = false;
 
                                 elementRestoreDiv.style.display         = "none";
                                 elementRestoreResultDiv.innerHTML       = "";
@@ -515,8 +517,11 @@
                         }
 
                         elementFirmwareUpdateButton.onclick = function () {
-                                let firmwareBLOB = null;
+                                if (apiFirmwareUpdateInProgress == true) {
+                                        return;
+                                }
 
+                                apiFirmwareUpdateInProgress = true;
                                 elementFirmwareResultDiv.innerHTML = "Update is in progess...";
 
                                 if (elementFirmwareFileInput.files.length > 0) {
@@ -547,13 +552,16 @@
                                                 }) .catch(e => {
                                                         console.error(e);
                                                         elementFirmwareResultDiv.innerHTML = "Update error, try again later.";
+                                                        apiFirmwareUpdateInProgress = false;
                                                 });
                                         }
                                         reader.onerror = function (error) {
                                                 elementFirmwareResultDiv.innerHTML = "Update error, try again later.";
+                                                apiFirmwareUpdateInProgress = false;
                                         }
                                 } else {
                                         elementFirmwareResultDiv.innerHTML = "Update error, select file.";
+                                        apiFirmwareUpdateInProgress = false;
                                 }
                         }
 
@@ -734,7 +742,7 @@
                                 <button id="elementFirmwareUpdateButton" type="button" class="w-100 btn btn-light">Update</button>
                         </p>
                         <p>
-                                Please downlaod latest full bin file from <a style="color:inherit"
+                                Please download latest full bin file from <a style="color:inherit"
                                 href="https://github.com/alperakcan/seyrusefer/releases">releases</a> page.
                         </p>
                         <p>
