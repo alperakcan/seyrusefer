@@ -54,7 +54,7 @@ are not familiar with ESP-IDF.
 ### 1.1.3.2. setup tools
 
     cd esp-idf-v5.2.1.git
-    ./install.sh esp32
+    ./install.sh esp32,esp32c3
 
 ### 1.1.3.3. setup environment
 
@@ -87,12 +87,12 @@ are not familiar with ESP-IDF.
 
     ( \
         cd build && \
-        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.8-full.bin @flash_args && \
-        cp seyrusefer-esp32.bin ../seyrusefer-esp32-v1.0.8.bin \
+        esptool.py --chip esp32 merge_bin -o ../seyrusefer-esp32-v1.0.9-full.bin @flash_args && \
+        cp seyrusefer-esp32.bin ../seyrusefer-esp32-v1.0.9.bin \
     )
 
     esptool.py -p /dev/ttyUSB0 erase_flash
-    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.8-full.bin
+    esptool.py -p /dev/ttyUSB0 write_flash 0x0 seyrusefer-esp32-v1.0.9-full.bin
 
     idf.py -p /dev/ttyUSB0 monitor
 
@@ -104,8 +104,9 @@ and flash.
 ## 2.1 windows
 
 Please download and install USB to UART Bridge Controller driver from
-https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads for CP210x, and
-https://wch-ic.com/search?q=CH340&t=downloads for CH34x.
+https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads for CP210x,
+https://wch-ic.com/search?q=CH340&t=downloads for CH34x,
+https://wch-ic.com/search?q=ch9102&t=downloads for CH9102.
 
 Please download and approtiate version for windows (ex: esptool-v4.7.0-win64.zip)
 from https://github.com/espressif/esptool/releases
@@ -113,7 +114,7 @@ from https://github.com/espressif/esptool/releases
 Select file as seyrusefer.bin and offset as 0x0000.
 
     ./esptool.exe erase_flash
-    ./esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.8-full.bin
+    ./esptool.exe write_flash 0x0 seyrusefer-esp32-v1.0.9-full.bin
 
 # 3. run
 
