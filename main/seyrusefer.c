@@ -454,7 +454,7 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
 
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_CONSUMER_SCAN_NEXT_TRK;
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_CONSUMER_SCAN_PREV_TRK;
-        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key = SEYRUSEFER_HID_CONSUMER_PLAY;
+        seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key = SEYRUSEFER_HID_CONSUMER_PLAY_PAUSE;
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key = SEYRUSEFER_HID_CONSUMER_VOLUME_UP;
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_2].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key = SEYRUSEFER_HID_CONSUMER_VOLUME_DOWN;
 

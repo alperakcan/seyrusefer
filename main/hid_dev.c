@@ -5,10 +5,10 @@
  */
 
 #include "hid_dev.h"
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include "esp_log.h"
 
 static hid_report_map_t *hid_dev_rpt_tbl;
@@ -122,7 +122,11 @@ void hid_consumer_build_report(uint8_t *buffer, consumer_cmd_t cmd)
             break;
 
         case HID_CONSUMER_PLAY_PAUSE:
-            HID_CC_RPT_SET_BUTTON(buffer, HID_CC_RPT_PLAY);
+            {
+                static int play_pause = 0;
+                HID_CC_RPT_SET_BUTTON(buffer, play_pause ? HID_CC_RPT_PLAY : HID_CC_RPT_STOP);
+                play_pause = (play_pause + 1) % 2;
+            }
             break;
 
         default:
