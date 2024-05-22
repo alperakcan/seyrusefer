@@ -122,11 +122,7 @@ void hid_consumer_build_report(uint8_t *buffer, consumer_cmd_t cmd)
             break;
 
         case HID_CONSUMER_PLAY_PAUSE:
-            {
-                static int play_pause = 0;
-                HID_CC_RPT_SET_BUTTON(buffer, play_pause ? HID_CC_RPT_PLAY : HID_CC_RPT_STOP);
-                play_pause = (play_pause + 1) % 2;
-            }
+            HID_CC_RPT_SET_BUTTON(buffer, HID_CC_RPT_PLAY_PAUSE);
             break;
 
         default:
