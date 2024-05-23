@@ -144,6 +144,9 @@
                                 settings.mode = elementSettingsMode.value;
                                 settings.led = {};
                                 settings.led.brightness = document.getElementById(`elementSettingsLED:BRIGHTNESS`).value;
+                                settings.key = {};
+                                settings.key.repeatDelay = document.getElementById(`elementSettingsKEY:REPEAT_DELAY`).value;
+                                settings.key.repeatInterval = document.getElementById(`elementSettingsKEY:REPEAT_INTERVAL`).value;
                                 settings.modes = [];
 
                                 for (m = 1; m <= 5; m++) {
@@ -213,6 +216,8 @@
                                         console.log("{0}{1}".format(apiUrl, apiSettingsGet));
                                         console.log("  mode                    : {0}".format(json.mode));
                                         console.log("  led.brightness          : {0}".format(json.led.brightness));
+                                        console.log("  key.repeatDelay         : {0}".format(json.key.repeatDelay));
+                                        console.log("  key.repeatInterval      : {0}".format(json.key.repeatInterval));
                                         console.log("  modes[0].buttons[0].key : {0}".format(json.modes[0].buttons[0].key));
                                         console.log("  modes[0].buttons[1].key : {0}".format(json.modes[0].buttons[1].key));
                                         console.log("  modes[0].buttons[2].key : {0}".format(json.modes[0].buttons[2].key));
@@ -243,6 +248,9 @@
                                                 { "id": "MODE", "name": "MODE", "value": json.mode, "type": "mode" },
                                                 { "id": "LED", "name": "LED", "value": null, "type": "title" },
                                                 { "id": "LED:BRIGHTNESS", "name": "BRIGHTNESS", "value": json.led.brightness, "type": "brightness" },
+                                                { "id": "KEY", "name": "KEY", "value": null, "type": "title" },
+                                                { "id": "KEY:REPEAT_DELAY", "name": "REPEAT_DELAY", "value": json.key.repeatDelay, "type": "repeatDelay" },
+                                                { "id": "KEY:REPEAT_INTERVAL", "name": "REPEAT_INTERVAL", "value": json.key.repeatInterval, "type": "repeatInterval" },
                                                 { "id": "MODE_1", "name": "MODE_1", "value": null, "type": "title" },
                                                 { "id": "MODE_1:BUTTON_1", "name": "BUTTON_1", "value": json.modes[0].buttons[0].key, "type": "key" },
                                                 { "id": "MODE_1:BUTTON_2", "name": "BUTTON_2", "value": json.modes[0].buttons[1].key, "type": "key" },
@@ -289,6 +297,10 @@
                                                         h += `<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${n}</td>`;
                                                 } else if (t == "brightness") {
                                                         h += `<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${n}</td>`;
+                                                } else if (t == "repeatDelay") {
+                                                        h += `<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${n}</td>`;
+                                                } else if (t == "repeatInterval") {
+                                                        h += `<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${n}</td>`;
                                                 } else {
                                                         h += `<td>${n}</td>`;
                                                 }
@@ -300,6 +312,44 @@
                                                                 "65",
                                                                 "80",
                                                                 "100"
+                                                        ];
+                                                        h += `<td>`;
+                                                        h += `<select id="elementSettings${d}" onchange="elementSettingsChanged()" class="form-select" aria-label="Default select example">`;
+                                                        for (j = 0; j < values.length; j++) {
+                                                                if (values[j] == v) {
+                                                                        h += `<option value="${values[j]}" selected>${values[j]}</option>`;
+                                                                } else {
+                                                                        h += `<option value="${values[j]}">${values[j]}</option>`;
+                                                                }
+                                                        }
+                                                        h += `</select>`;
+                                                        h += `</td>`;
+                                                } else if (t == "repeatDelay") {
+                                                        let values = [
+                                                                "500",
+                                                                "750",
+                                                                "1000",
+                                                                "1500",
+                                                                "2000"
+                                                        ];
+                                                        h += `<td>`;
+                                                        h += `<select id="elementSettings${d}" onchange="elementSettingsChanged()" class="form-select" aria-label="Default select example">`;
+                                                        for (j = 0; j < values.length; j++) {
+                                                                if (values[j] == v) {
+                                                                        h += `<option value="${values[j]}" selected>${values[j]}</option>`;
+                                                                } else {
+                                                                        h += `<option value="${values[j]}">${values[j]}</option>`;
+                                                                }
+                                                        }
+                                                        h += `</select>`;
+                                                        h += `</td>`;
+                                                } else if (t == "repeatInterval") {
+                                                        let values = [
+                                                                "25",
+                                                                "50",
+                                                                "100",
+                                                                "250",
+                                                                "500"
                                                         ];
                                                         h += `<td>`;
                                                         h += `<select id="elementSettings${d}" onchange="elementSettingsChanged()" class="form-select" aria-label="Default select example">`;

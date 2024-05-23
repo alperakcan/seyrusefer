@@ -1,5 +1,5 @@
 
-#define SEYRUSEFER_SETTINGS_MAGIC               (('s' << 0x18) | ('e' << 0x10) | ('t' << 0x08) | ('2' << 0x00))
+#define SEYRUSEFER_SETTINGS_MAGIC               (('s' << 0x18) | ('e' << 0x10) | ('t' << 0x08) | ('3' << 0x00))
 
 enum {
         SEYRUSEFER_SETTINGS_BUTTON_INVALID      = -1,
@@ -47,10 +47,16 @@ struct seyrusefer_settings_led {
         int brightness;
 };
 
+struct seyrusefer_settings_key {
+        int repeat_delay;
+        int repeat_interval;
+};
+
 struct seyrusefer_settings {
         uint32_t magic;
         int mode;
         struct seyrusefer_settings_led led;
+        struct seyrusefer_settings_key key;
         struct seyrusefer_settings_mode modes[SEYRUSEFER_SETTINGS_MODE_COUNT];
 };
 

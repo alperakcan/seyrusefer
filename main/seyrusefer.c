@@ -77,6 +77,9 @@ struct seyrusefer {
         int64_t wifi_restore_buttons_dur;
         int64_t wifi_restore_buttons_tsms;
 
+        int button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_COUNT];
+        int64_t button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_COUNT];
+
         int stats_dur;
         int64_t stats_tsms;
 
@@ -444,7 +447,10 @@ struct seyrusefer * seyrusefer_create (struct seyrusefer_init_options *options)
         seyrusefer->settings.magic = SEYRUSEFER_SETTINGS_MAGIC;
         seyrusefer->settings.mode  = SEYRUSEFER_SETTINGS_MODE_1;
 
-        seyrusefer->settings.led.brightness = 30;
+        seyrusefer->settings.led.brightness = 25;
+
+        seyrusefer->settings.key.repeat_delay    = 750;
+        seyrusefer->settings.key.repeat_interval = 50;
 
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key = SEYRUSEFER_HID_KEY_D;
         seyrusefer->settings.modes[SEYRUSEFER_SETTINGS_MODE_1].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key = SEYRUSEFER_HID_KEY_R;
@@ -741,7 +747,6 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                 } else if (seyrusefer->connected == 1) {
                         if (seyrusefer->buttons != seyrusefer->pbuttons) {
                                 seyrusefer_platform_set_led(seyrusefer->buttons ? seyrusefer->settings.led.brightness : 0);
-
 #if 0
                                 if (buttons_active & SEYRUSEFER_PLATFORM_BUTTON_1) {
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key, buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_1);
@@ -760,26 +765,103 @@ int seyrusefer_process (struct seyrusefer *seyrusefer)
                                 }
 #else
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_1) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_1] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_1] = 0;
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key, 1);
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key, 0);
                                 }
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_2) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_2] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_2] = 0;
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key, 1);
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key, 0);
                                 }
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_3) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_3] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_3] = 0;
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key, 1);
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key, 0);
                                 }
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_4) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_4] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_4] = 0;
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key, 1);
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key, 0);
                                 }
                                 if (buttons_pressed & SEYRUSEFER_PLATFORM_BUTTON_5) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_5] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_5] = 0;
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key, 1);
                                         seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key, 0);
                                 }
+
+                                if (buttons_released & SEYRUSEFER_PLATFORM_BUTTON_1) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_1] = 0;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_1] = 0;
+                                }
+                                if (buttons_released & SEYRUSEFER_PLATFORM_BUTTON_2) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_2] = 0;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_2] = 0;
+                                }
+                                if (buttons_released & SEYRUSEFER_PLATFORM_BUTTON_3) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_3] = 0;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_3] = 0;
+                                }
+                                if (buttons_released & SEYRUSEFER_PLATFORM_BUTTON_4) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_4] = 0;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_4] = 0;
+                                }
+                                if (buttons_released & SEYRUSEFER_PLATFORM_BUTTON_5) {
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_5] = 0;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_5] = 0;
+                                }
 #endif
+                        } else if (seyrusefer->buttons != 0) {
+                                if ((seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_1) &&
+                                    ((now < seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_1]) ||
+                                     (now - seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_1] >= (seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_1] ? seyrusefer->settings.key.repeat_interval : seyrusefer->settings.key.repeat_delay) * 1000))) {
+                                        seyrusefer_errorf("buttons: 0x%0x repeat", seyrusefer->buttons);
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_1] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_1] = 1;
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_1].key, 0);
+                                }
+                                if ((seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_2) &&
+                                    ((now < seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_2]) ||
+                                     (now - seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_2] >= (seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_2] ? seyrusefer->settings.key.repeat_interval : seyrusefer->settings.key.repeat_delay) * 1000))) {
+                                        seyrusefer_errorf("buttons: 0x%0x repeat", seyrusefer->buttons);
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_2] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_2] = 1;
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_2].key, 0);
+                                }
+                                if ((seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_3) &&
+                                    ((now < seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_3]) ||
+                                     (now - seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_3] >= (seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_3] ? seyrusefer->settings.key.repeat_interval : seyrusefer->settings.key.repeat_delay) * 1000))) {
+                                        seyrusefer_errorf("buttons: 0x%0x repeat", seyrusefer->buttons);
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_3] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_3] = 1;
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_3].key, 0);
+                                }
+                                if ((seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_4) &&
+                                    ((now < seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_4]) ||
+                                     (now - seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_4] >= (seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_4] ? seyrusefer->settings.key.repeat_interval : seyrusefer->settings.key.repeat_delay) * 1000))) {
+                                        seyrusefer_errorf("buttons: 0x%0x repeat", seyrusefer->buttons);
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_4] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_4] = 1;
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_4].key, 0);
+                                }
+                                if ((seyrusefer->buttons == SEYRUSEFER_PLATFORM_BUTTON_5) &&
+                                    ((now < seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_5]) ||
+                                     (now - seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_5] >= (seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_5] ? seyrusefer->settings.key.repeat_interval : seyrusefer->settings.key.repeat_delay) * 1000))) {
+                                        seyrusefer_errorf("buttons: 0x%0x repeat", seyrusefer->buttons);
+                                        seyrusefer->button_pressed_tsms[SEYRUSEFER_SETTINGS_BUTTON_5] = now;
+                                        seyrusefer->button_pressed_repeat[SEYRUSEFER_SETTINGS_BUTTON_5] = 1;
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key, 1);
+                                        seyrusefer_hid_send_key(seyrusefer->hid, seyrusefer->settings.modes[seyrusefer->settings.mode].buttons[SEYRUSEFER_SETTINGS_BUTTON_5].key, 0);
+                                }
                         }
                 } else {
                         seyrusefer_errorf("seyrusefer_hid_connected failed, rc: %d", rc);

@@ -105,6 +105,10 @@ static esp_err_t api_settings_get (httpd_req_t *req)
                         "  \"led\": {" \
                         "    \"brightness\": \"%d\"" \
                         "  }," \
+                        "  \"key\": {" \
+                        "    \"repeatDelay\": \"%d\"," \
+                        "    \"repeatInterval\": \"%d\"" \
+                        "  }," \
                         "  \"modes\":[{" \
                         "    \"buttons\":[" \
                         "      { \"key\":\"%s\" }," \
@@ -149,6 +153,8 @@ static esp_err_t api_settings_get (httpd_req_t *req)
                         "}",
                         seyrusefer_settings_mode_to_string(settings->mode),
                         settings->led.brightness,
+                        settings->key.repeat_delay,
+                        settings->key.repeat_interval,
                         seyrusefer_settings_key_to_string(settings->modes[0].buttons[0].key),
                         seyrusefer_settings_key_to_string(settings->modes[0].buttons[1].key),
                         seyrusefer_settings_key_to_string(settings->modes[0].buttons[2].key),
@@ -201,10 +207,13 @@ static esp_err_t api_settings_set (httpd_req_t *req)
         cJSON *mode;
         cJSON *led;
         cJSON *ledBrightness;
+        cJSON *key;
+        cJSON *keyRepeatDelay;
+        cJSON *keyRepeatInterval;
         cJSON *modes;
         cJSON *button;
         cJSON *buttons;
-        cJSON *key;
+        cJSON *buttonKey;
 
         int m;
         int b;
@@ -276,6 +285,36 @@ static esp_err_t api_settings_set (httpd_req_t *req)
                 settings.led.brightness = 100;
         }
 
+        key = cJSON_GetObjectItem(root, "key");
+        if (key == NULL || !cJSON_IsObject(key)) {
+                seyrusefer_errorf("key is invalid");
+                goto bail;
+        }
+        keyRepeatDelay = cJSON_GetObjectItem(key, "repeatDelay");
+        if (keyRepeatDelay == NULL || !cJSON_IsString(keyRepeatDelay)) {
+                seyrusefer_errorf("keyRepeatDelay is invalid");
+                goto bail;
+        }
+        keyRepeatInterval = cJSON_GetObjectItem(key, "repeatInterval");
+        if (keyRepeatInterval == NULL || !cJSON_IsString(keyRepeatInterval)) {
+                seyrusefer_errorf("keyRepeatInterval is invalid");
+                goto bail;
+        }
+        settings.key.repeat_delay = atoi(keyRepeatDelay->valuestring);
+        if (settings.key.repeat_delay < 500) {
+                settings.key.repeat_delay = 500;
+        }
+        if (settings.key.repeat_delay > 60000) {
+                settings.key.repeat_delay = 60000;
+        }
+        settings.key.repeat_interval = atoi(keyRepeatInterval->valuestring);
+        if (settings.key.repeat_interval < 25) {
+                settings.key.repeat_interval = 25;
+        }
+        if (settings.key.repeat_interval > 60000) {
+                settings.key.repeat_interval = 60000;
+        }
+
         modes = cJSON_GetObjectItem(root, "modes");
         if (modes == NULL || !cJSON_IsArray(modes)) {
                 seyrusefer_errorf("modes is invalid");
@@ -310,15 +349,15 @@ static esp_err_t api_settings_set (httpd_req_t *req)
                                 seyrusefer_errorf("button is invalid");
                                 goto bail;
                         }
-                        key = cJSON_GetObjectItem(button, "key");
-                        if (key == NULL || !cJSON_IsString(key)) {
+                        buttonKey = cJSON_GetObjectItem(button, "key");
+                        if (buttonKey == NULL || !cJSON_IsString(buttonKey)) {
                                 seyrusefer_errorf("key is invalid");
                                 goto bail;
                         }
 
-                        settings.modes[m].buttons[b].key = seyrusefer_settings_key_from_string(key->valuestring);
+                        settings.modes[m].buttons[b].key = seyrusefer_settings_key_from_string(buttonKey->valuestring);
                         if (settings.modes[m].buttons[b].key == SEYRUSEFER_HID_KEY_INVALID) {
-                                seyrusefer_errorf("key: %s is invalid", key->valuestring);
+                                seyrusefer_errorf("key: %s is invalid", buttonKey->valuestring);
                                 goto bail;
                         }
 
