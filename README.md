@@ -54,7 +54,7 @@ are not familiar with ESP-IDF.
 ### 1.1.3.2. setup tools
 
     cd esp-idf-v5.4.git
-    ./install.sh esp32c3
+    ./install.sh esp32,esp32s3,esp32c3
 
 ### 1.1.3.3. setup environment
 
@@ -88,12 +88,12 @@ are not familiar with ESP-IDF.
     ( \
         idf.py build && \
         cd build && \
-        esptool.py --chip esp32c3 merge_bin -o ../seyrusefer-esp32c3-v1.2.1-full.bin @flash_args && \
-        cp seyrusefer-esp32c3.bin ../seyrusefer-esp32c3-v1.2.1.bin \
+        esptool.py --chip esp32c3 merge_bin -o ../seyrusefer-esp32c3-v1.2.2-full.bin @flash_args && \
+        cp seyrusefer-esp32.bin ../seyrusefer-esp32c3-v1.2.2.bin \
     )
 
     esptool.py -p /dev/ttyACM0 erase_flash
-    esptool.py -p /dev/ttyACM0 write_flash 0x0 seyrusefer-esp32c3-v1.2.1-full.bin
+    esptool.py -p /dev/ttyACM0 write_flash 0x0 seyrusefer-esp32c3-v1.2.2-full.bin
 
     idf.py -p /dev/ttyACM0 monitor
 
@@ -115,7 +115,7 @@ from https://github.com/espressif/esptool/releases
 Select file as seyrusefer.bin and offset as 0x0000.
 
     ./esptool.exe erase_flash
-    ./esptool.exe write_flash 0x0 seyrusefer-esp32c3-v1.2.1-full.bin
+    ./esptool.exe write_flash 0x0 seyrusefer-esp32c3-v1.2.2-full.bin
 
 # 3. run
 
