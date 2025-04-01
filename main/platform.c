@@ -28,9 +28,9 @@ const int GPIO_LED      = GPIO_NUM_13;
 #elif defined(CONFIG_IDF_TARGET_ESP32C3) && (CONFIG_IDF_TARGET_ESP32C3 == 1)
 
 /* push buttons */
-const int GPIO_BUTTON_1 = GPIO_NUM_3;
+const int GPIO_BUTTON_1 = GPIO_NUM_1;
 const int GPIO_BUTTON_2 = GPIO_NUM_2;
-const int GPIO_BUTTON_3 = GPIO_NUM_1;
+const int GPIO_BUTTON_3 = GPIO_NUM_3;
 
 /* toggle switch */
 const int GPIO_BUTTON_4 = GPIO_NUM_10;
