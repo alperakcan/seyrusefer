@@ -81,6 +81,13 @@ static void wifi_event_handler (void *arg, esp_event_base_t event_base, int32_t 
                 seyrusefer_debugf("WIFI_EVENT_STA_BEACON_TIMEOUT");
         } else if (event_id == WIFI_EVENT_CONNECTIONLESS_MODULE_WAKE_INTERVAL_START) {
                 seyrusefer_debugf("WIFI_EVENT_CONNECTIONLESS_MODULE_WAKE_INTERVAL_START");
+        } else if (event_id == WIFI_EVENT_HOME_CHANNEL_CHANGE) {
+                wifi_event_home_channel_change_t *event = event_data;
+                seyrusefer_debugf("WIFI_EVENT_HOME_CHANNEL_CHANGE");
+                seyrusefer_debugf("  old_chan: %d", event->old_chan);
+                seyrusefer_debugf("  old_snd : %d", event->old_snd);
+                seyrusefer_debugf("  new_chan: %d", event->new_chan);
+                seyrusefer_debugf("  new_snd : %d", event->new_snd);
         } else {
                 seyrusefer_errorf("unknown wifi event: %ld", event_id);
         }
@@ -241,7 +248,7 @@ int seyrusefer_wifi_start (struct seyrusefer_wifi *wifi)
                         .ssid_len       = 0,
                         .channel        = 1,
                         .password       = { 0 },
-                        .max_connection = 16,
+                        .max_connection = 8,
                         .authmode       = WIFI_AUTH_WPA_WPA2_PSK,
                         .beacon_interval= 400,
                 }
@@ -259,6 +266,13 @@ int seyrusefer_wifi_start (struct seyrusefer_wifi *wifi)
                 seyrusefer_errorf("esp_wifi_start failed, rc: %d, 0x%08x, %s", rc, rc, esp_err_to_name(rc));
                 goto bail;
         }
+#if defined(CONFIG_IDF_TARGET_ESP32C3) && (CONFIG_IDF_TARGET_ESP32C3 == 1)
+        rc = esp_wifi_set_max_tx_power(8);
+        if (rc != ESP_OK) {
+                seyrusefer_errorf("esp_wifi_set_max_tx_power failed, rc: %d, 0x%08x, %s", rc, rc, esp_err_to_name(rc));
+                goto bail;
+        }
+#endif
 
 out:    free(ap_ssid);
         free(ap_pass);
