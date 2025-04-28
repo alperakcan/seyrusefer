@@ -27,6 +27,22 @@ const int GPIO_LED      = GPIO_NUM_13;
 
 #elif defined(CONFIG_IDF_TARGET_ESP32C3) && (CONFIG_IDF_TARGET_ESP32C3 == 1)
 
+#if 0
+
+/* push buttons */
+const int GPIO_BUTTON_1 = GPIO_NUM_9;
+const int GPIO_BUTTON_2 = GPIO_NUM_10;
+const int GPIO_BUTTON_3 = GPIO_NUM_20;
+
+/* toggle switch */
+const int GPIO_BUTTON_4 = GPIO_NUM_2;
+const int GPIO_BUTTON_5 = GPIO_NUM_3;
+
+/* led */
+const int GPIO_LED      = GPIO_NUM_1;
+
+#else
+
 /* push buttons */
 const int GPIO_BUTTON_1 = GPIO_NUM_1;
 const int GPIO_BUTTON_2 = GPIO_NUM_2;
@@ -40,6 +56,16 @@ const int GPIO_BUTTON_5 = GPIO_NUM_20;
 const int GPIO_LED      = GPIO_NUM_9;
 
 #endif
+
+#endif
+
+#define LEDC_TIMER              LEDC_TIMER_0
+#define LEDC_MODE               LEDC_LOW_SPEED_MODE
+#define LEDC_OUTPUT_IO          GPIO_LED
+#define LEDC_CHANNEL            LEDC_CHANNEL_0
+#define LEDC_DUTY_RES           LEDC_TIMER_14_BIT
+#define LEDC_DUTY               (1 << 14)
+#define LEDC_FREQUENCY          (4000)
 
 static int gpio_init (void)
 {
@@ -65,16 +91,9 @@ static int gpio_init (void)
         rc |= gpio_set_pull_mode(GPIO_BUTTON_4, GPIO_PULLUP_ONLY);
         rc |= gpio_set_pull_mode(GPIO_BUTTON_5, GPIO_PULLUP_ONLY);
 
-        //rc |= gpio_reset_pin(GPIO_LED);
+        rc |= gpio_reset_pin(GPIO_LED);
+        rc |= gpio_set_pull_mode(GPIO_LED, GPIO_PULLUP_ONLY);
 	rc |= gpio_set_direction(GPIO_LED, GPIO_MODE_OUTPUT);
-
-        #define LEDC_TIMER              LEDC_TIMER_0
-        #define LEDC_MODE               LEDC_LOW_SPEED_MODE
-        #define LEDC_OUTPUT_IO          GPIO_LED
-        #define LEDC_CHANNEL            LEDC_CHANNEL_0
-        #define LEDC_DUTY_RES           LEDC_TIMER_14_BIT
-        #define LEDC_DUTY               (1 << 14)
-        #define LEDC_FREQUENCY          (4000)
 
         ledc_timer_config_t ledc_timer = {
                 .speed_mode       = LEDC_MODE,
@@ -97,7 +116,7 @@ static int gpio_init (void)
         rc |= ledc_channel_config(&ledc_channel);
 
         if (rc != 0) {
-                seyrusefer_errorf("gpi setup failed");
+                seyrusefer_errorf("gpio setup failed");
                 goto bail;
         }
         return 0;
@@ -203,16 +222,8 @@ int seyrusefer_platform_get_buttons (void)
 int seyrusefer_platform_set_led (int on)
 {
         int rc;
-        ledc_channel_config_t ledc_channel = {
-                .speed_mode     = LEDC_MODE,
-                .channel        = LEDC_CHANNEL,
-                .timer_sel      = LEDC_TIMER,
-                .intr_type      = LEDC_INTR_DISABLE,
-                .gpio_num       = LEDC_OUTPUT_IO,
-                .duty           = (LEDC_DUTY * on) / 100,
-                .hpoint         = 0
-        };
-        rc = ledc_channel_config(&ledc_channel);
+        rc  = ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, (LEDC_DUTY * on) / 100);
+        rc |= ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
         if (rc != 0) {
                 seyrusefer_errorf("can not set led to: %d", on);
                 goto bail;
